@@ -7,9 +7,9 @@ Pluggable runtime effects engine (think redux-saga, except you define your own s
 
 See [this talk](https://vimeo.com/215355409) for some of the motivations of building this (and pushing side effects to the edge).
 
-### Usage
+## Usage
 
-#### Creating an effects runtime/interpreter
+### Creating an effects runtime/interpreter:
 
 ```js
 const createRuntime = require('edge-effects');
@@ -22,7 +22,7 @@ const args = { ... };
 runtime(process, context, finalHandler, args);
 ```
 
-#### IO
+### IO:
 
 Define the interface for:
 
@@ -38,7 +38,7 @@ const io = {
 }
 ```
 
-#### Effects (description + resolver)
+### Effects (descriptors + resolvers):
 
 Creating a set of effects you want your runtime to be able to resolve/handle.
 
@@ -128,7 +128,7 @@ const effects = {
 }
 ```
 
-### Examples
+## Examples
 
 ```js
 'use strict';
