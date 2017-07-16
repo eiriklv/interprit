@@ -1,0 +1,31 @@
+{
+  "name": "edge-effects",
+  "version": "1.0.0",
+  "description": "Pluggable runtime effects engine",
+  "main": "index.js",
+  "directories": {
+    "example": "examples",
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eiriklv/edge-effects.git"
+  },
+  "keywords": [
+    "effects",
+    "interpreter",
+    "side",
+    "effects",
+    "descriptions",
+    "values"
+  ],
+  "author": "Eirik Vullum",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eiriklv/edge-effects/issues"
+  },
+  "homepage": "https://github.com/eiriklv/edge-effects#readme"
+}
