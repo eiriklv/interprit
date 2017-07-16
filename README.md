@@ -1,6 +1,8 @@
 edge-effects
 ============
 
+[![npm version](https://badge.fury.io/js/edge-effects.svg)](https://badge.fury.io/js/edge-effects)
+
 __NOTE:__ Mostly for educative and exploratory purposes for now.
 
 Pluggable runtime effects engine (think redux-saga, except you define your own set of effects and higher order effects).
