@@ -13,12 +13,35 @@ See [this talk](https://vimeo.com/215355409) for some of the motivations of buil
 
 ```js
 const createRuntime = require('edge-effects');
+
+/**
+ * Creating a runtime from middleware, effects and io
+ */
 const runtime = createRuntime(middleware = [], effects = {}, io = {});
-const process = function* () { ... };
+
+/**
+ * Create a final handler that will be called when your process has completed
+ */
 const finalHandler = function () { ... };
+
+/**
+ * Create a shared context that your processes might use as shared memory
+ */
 const context = { ... };
+
+/**
+ * Create an object of arguments that will be passed to your process
+ */
 const args = { ... };
 
+/**
+ * Create a process to run
+ */
+const process = function* () { ... };
+
+/**
+ * Run your process with the runtime
+ */
 runtime(process, context, finalHandler, args);
 ```
 
