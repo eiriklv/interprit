@@ -540,6 +540,48 @@ const put = {
 }
 
 /**
+ * Create an effect bundle for putting
+ * a message into a channel
+ *
+ * Handle an effect spec of the put-channel
+ * type which resolves putting messages into channels
+ */
+const putChannel = {
+  describe(channel, message) {
+    return {
+      type: '@@put-channel',
+      channel,
+      message,
+    };
+  },
+  resolve({ channel, message }, io, engine, cb) {
+    channel.put(message);
+    cb();
+  },
+}
+
+/**
+ * Create an effect bundle for taking
+ * a message from a channel
+ *
+ * Handle an effect spec of the take-channel
+ * type which resolves taking messages from channels
+ */
+const takeChannel = {
+  describe(channel) {
+    return {
+      type: '@@take-channel',
+      channel,
+    };
+  },
+  resolve({ channel }, io, engine, cb) {
+    channel.take((msg) => {
+      cb(null, msg);
+    });
+  },
+}
+
+/**
  * Exports
  */
 module.exports = {
