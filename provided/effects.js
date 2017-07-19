@@ -582,6 +582,42 @@ const takeChannel = {
 }
 
 /**
+ * Create an effect bundle for getting the shared context
+ *
+ * Handle an effect spec of the get-context
+ * type which resolves getting the shared context
+ */
+const getContext = {
+  describe() {
+    return {
+      type: '@@get-context',
+    };
+  },
+  resolve(effect, io, { context }, cb) {
+    cb(null, context);
+  },
+}
+
+/**
+ * Create an effect bundle for setting something on the shared context
+ *
+ * Handle an effect spec of the set-context
+ * type which resolves setting something on the shared context
+ */
+const setContext = {
+  describe(update) {
+    return {
+      type: '@@set-context',
+      update,
+    };
+  },
+  resolve({ update }, io, { context }, cb) {
+    Object.assign(context, update);
+    cb();
+  },
+}
+
+/**
  * Exports
  */
 module.exports = {
@@ -606,4 +642,6 @@ module.exports = {
   takeEvent,
   select,
   render,
+  getContext,
+  setContext,
 }
