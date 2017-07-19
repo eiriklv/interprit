@@ -24,7 +24,7 @@ module.exports.channel = function channel(buffer) {
       }
 
       if (takers.length) {
-        const taker = takers.splice(0, 1);
+        const taker = takers.shift();
         taker(msg);
       } else {
         buffer.put(msg);
@@ -32,7 +32,9 @@ module.exports.channel = function channel(buffer) {
     },
     take(callback) {
       if (!buffer.isEmpty()) {
+        console.log('yo');
         const msg = buffer.take();
+        console.log(msg);
         callback(msg);
       } else if (buffer.isEmpty() && isClosed) {
         callback(END);
@@ -56,7 +58,7 @@ module.exports.channel = function channel(buffer) {
     close() {
       isClosed = true;
 
-      for (let i = 0; i < takers.length; i++) {
+      while (takers.length) {
         const taker = takers.shift();
         taker(END);
       }

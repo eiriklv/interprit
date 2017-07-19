@@ -25,7 +25,7 @@ module.exports.dropping = function dropping(limit = 10) {
       return buffer.shift();
     },
     isEmpty() {
-      return !!buffer.length;
+      return !buffer.length;
     },
   }
 };
@@ -44,7 +44,7 @@ module.exports.sliding = function sliding(limit = 10) {
       return buffer.shift();
     },
     isEmpty() {
-      return !!buffer.length;
+      return !buffer.length;
     },
   }
 };
