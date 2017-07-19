@@ -17,20 +17,22 @@ const {
 } = require('../provided/middleware');
 
 /**
+ * Channel interface
+ */
+const { channel: createChannel } = require('../provided/channel');
+
+/**
  * Effects
  */
 const {
   call,
-  callProc,
-  cps,
-  race,
-  parallel,
-  putAction,
-  takeAction,
+  fork,
+  setContext,
+  getContext,
   putStream,
   takeStream,
-  putEvent,
-  takeEvent,
+  putChannel,
+  takeChannel,
 } = require('../provided/effects');
 
 /**
@@ -54,33 +56,42 @@ function logMiddleware(effect) {
 }
 
 /**
- * A process that races two async calls
- * and alternates who "wins" every turn
+ * A process that communicates with
+ * another process over a channel
  */
-function* raceProcess() {
-  let delayTable = [200, 500, 1000, 1500];
-
+function* subProcess1({ channel }) {
   while (true) {
-    /**
-     * Race two async calls
-     */
-    const data = yield race.describe([
-      call.describe(delay, delayTable[0], 10),
-      call.describe(delay, delayTable[1], 20),
-      race.describe([
-        call.describe(delay, delayTable[2], 30),
-        call.describe(delay, delayTable[3], 40),
-      ]),
-    ]);
-
-    /**
-     * Cycle the delay table
-     */
-    const last = delayTable.pop();
-    delayTable.unshift(last);
-
-    yield call.describe(console.log, `${data}`);
+    yield call.describe(delay, 2000);
+    yield putChannel.describe(channel, 'ping!');
+    const data = yield takeChannel.describe(channel);
+    const context = yield getContext.describe();
+    yield putStream.describe(process.stdout, `(1) event received: ${JSON.stringify(context, null, 2)}\n`);
+    yield setContext.describe({ scooby: false });
   }
+}
+
+/**
+ * A process that communicates with
+ * another process over a channel
+ */
+function* subProcess2({ channel }) {
+  while (true) {
+    const data = yield takeChannel.describe(channel);
+    const context = yield getContext.describe();
+    yield putStream.describe(process.stdout, `(2) event received: ${JSON.stringify(context, null, 2)}\n`);
+    yield setContext.describe({ scooby: true });
+    yield call.describe(delay, 2000);
+    yield putChannel.describe(channel, 'pong!');
+  }
+}
+
+/**
+ * Main process
+ */
+function* mainProcess() {
+  const channel = yield call.describe(createChannel);
+  yield fork.describe(subProcess1, { channel });
+  yield fork.describe(subProcess2, { channel });
 }
 
 /**
@@ -150,23 +161,20 @@ function application () {
    */
   const runtime = createRuntime([logMiddleware], {
     call,
-    callProc,
-    cps,
-    race,
-    parallel,
-    putAction,
-    takeAction,
+    fork,
+    setContext,
+    getContext,
     putStream,
     takeStream,
-    putEvent,
-    takeEvent,
+    putChannel,
+    takeChannel,
   }, io);
 
   /**
    * Gather all the processes
    */
   const processes = [
-    raceProcess,
+    mainProcess,
   ];
 
   /**
