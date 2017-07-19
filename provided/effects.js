@@ -596,6 +596,8 @@ module.exports = {
   parallel,
   put,
   take,
+  putChannel,
+  takeChannel,
   putAction,
   takeAction,
   putStream,
