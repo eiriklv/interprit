@@ -210,10 +210,11 @@ const {
 const createRuntime = require('../lib/runtime');
 
 /**
- * Middleware to add logging of the context
+ * Middleware to add logging of effects
  */
-function* logMiddleware() {
-  console.log(this);
+function logMiddleware(effect) {
+  console.log(effect.type);
+  return effect;
 }
 
 /**
