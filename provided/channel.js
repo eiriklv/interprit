@@ -63,3 +63,8 @@ module.exports.channel = function channel(buffer) {
     }
   }
 }
+
+/**
+ * TODO: Create an implementation of an event(emitter) channel
+ */
+const eventChannel = module.exports.eventChannel = function eventChannel() {}
