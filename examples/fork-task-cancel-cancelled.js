@@ -51,7 +51,11 @@ const createRuntime = require('../lib/runtime');
  * Middleware to add logging of effects
  */
 function logMiddleware(effect) {
-  console.log(effect.type);
+  if (typeof effect === 'object') {
+    console.log(effect.type);
+  } else {
+    console.log('@value', effect);
+  }
   return effect;
 }
 
@@ -59,7 +63,7 @@ function logMiddleware(effect) {
  * A process that communicates with
  * another process over a channel
  */
-function* subProcess({ channel }) {
+function* subSubProcess({ channel }) {
   try {
     while (true) {
       yield call.describe(delay, 2000);
@@ -67,6 +71,23 @@ function* subProcess({ channel }) {
       const data = yield takeChannel.describe(channel);
       yield putStream.describe(process.stdout, `(1) event received: ${data}\n`);
     }
+  } finally {
+    if (yield cancelled.describe()) {
+      console.log('subsubtask was cancelled');
+    } else {
+      console.log('subsubtask finished');
+    }
+  }
+}
+
+/**
+ * A process that communicates with
+ * another process over a channel
+ */
+function* subProcess() {
+  try {
+    const channel = yield call.describe(createChannel);
+    const task1 = yield fork.describe(subSubProcess, { channel });
   } finally {
     if (yield cancelled.describe()) {
       console.log('subtask was cancelled');
@@ -81,22 +102,10 @@ function* subProcess({ channel }) {
  */
 function* mainProcess() {
   try {
-    const channel = yield call.describe(createChannel);
-    const task1 = yield fork.describe(subProcess, { channel });
-
-    console.log('task1', task1);
+    const task1 = yield fork.describe(subProcess);
     yield call.describe(delay, 5000);
-
-    console.log('cancelling');
     yield cancel.describe(task1);
-    console.log(task1.isCancelled());
-    console.log('cancelled');
-
-    throw new Error('hello');
-
     yield call.describe(delay, 10000);
-  } catch (e) {
-    console.error(e);
   } finally {
     if (yield cancelled.describe()) {
       console.log('main task was cancelled');

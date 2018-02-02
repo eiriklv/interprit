@@ -42,8 +42,8 @@ const render = {
  * NOTE: Starts a new process and immediately
  * continues (non-blocking)
  *
- * TODO: Work needed regarding attaching / detaching
- * (see how redux-saga does this)
+ * TODO: Might need more work regarding attaching / detaching
+ * (see how redux-saga solves this)
  */
 const fork = {
   describe(proc, ...args) {
@@ -55,6 +55,7 @@ const fork = {
   },
   resolve({ proc, args }, io, { runtime, context }, rootTask, cb) {
     const task = runtime(proc, context, undefined, ...args);
+    rootTask.attachFork(task);
     cb(null, task);
   },
 }
@@ -95,7 +96,7 @@ const join = {
  * Create an effect bundle for cancelling
  * a generator function / process
  *
- * Returns nothing
+ * Cancels the task and returns nothing
  */
 const cancel = {
   describe(task) {
@@ -105,8 +106,7 @@ const cancel = {
     };
   },
   resolve({ task }, io, { runtime, context }, rootTask, cb) {
-    task.cancel();
-    cb();
+    cb(null, task.cancel());
   },
 }
 
@@ -123,8 +123,7 @@ const cancelled = {
     };
   },
   resolve({}, io, { runtime, context }, rootTask, cb) {
-    const isCancelled = rootTask.isCancelled();
-    cb(null, isCancelled);
+    cb(null, rootTask.isCancelled());
   },
 }
 

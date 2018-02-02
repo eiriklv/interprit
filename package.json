@@ -27,5 +27,8 @@
   "bugs": {
     "url": "https://github.com/eiriklv/edge-effects/issues"
   },
-  "homepage": "https://github.com/eiriklv/edge-effects#readme"
+  "homepage": "https://github.com/eiriklv/edge-effects#readme",
+  "dependencies": {
+    "uuid": "^3.2.1"
+  }
 }
