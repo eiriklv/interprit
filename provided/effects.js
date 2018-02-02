@@ -25,7 +25,7 @@ const render = {
       state,
     };
   },
-  resolve({ app, commands, state }, io, engine, rootTask, cb) {
+  resolve({ app, commands, state }, io, engine, parentTask, cb) {
     console.log('rendering app:');
     console.log(app({ commands, state }));
     cb();
@@ -53,9 +53,9 @@ const fork = {
       args,
     };
   },
-  resolve({ proc, args }, io, { runtime, context }, rootTask, cb) {
+  resolve({ proc, args }, io, { runtime, context }, parentTask, cb) {
     const task = runtime(proc, context, undefined, ...args);
-    rootTask.attachFork(task);
+    parentTask.attachFork(task);
     cb(null, task);
   },
 }
@@ -76,11 +76,14 @@ const join = {
       task,
     };
   },
-  resolve({ task }, io, { runtime, context }, rootTask, cb) {
+  resolve({ task }, io, { runtime, context }, parentTask, cb) {
     task.done
     .then((result) => {
-      if (task.isCancelled() && !rootTask.isCancelled()) {
-        rootTask.cancel();
+      /**
+       * If a joined task is cancelled it should cancel the parent task as well
+       */
+      if (task.isCancelled() && !parentTask.isCancelled()) {
+        parentTask.cancel();
         cb();
       } else {
         cb(null, result);
@@ -105,7 +108,7 @@ const cancel = {
       task,
     };
   },
-  resolve({ task }, io, { runtime, context }, rootTask, cb) {
+  resolve({ task }, io, { runtime, context }, parentTask, cb) {
     cb(null, task.cancel());
   },
 }
@@ -122,8 +125,8 @@ const cancelled = {
       type: '@@cancelled',
     };
   },
-  resolve({}, io, { runtime, context }, rootTask, cb) {
-    cb(null, rootTask.isCancelled());
+  resolve({}, io, { runtime, context }, parentTask, cb) {
+    cb(null, parentTask.isCancelled());
   },
 }
 
@@ -148,7 +151,7 @@ const spawn = {
       args,
     };
   },
-  resolve({ proc, args }, io, { runtime, context }, rootTask, cb) {
+  resolve({ proc, args }, io, { runtime, context }, parentTask, cb) {
     runtime(proc, context, undefined, ...args);
     cb();
   },
@@ -171,7 +174,7 @@ const callProc = {
       args,
     };
   },
-  resolve({ proc, args }, io, { runtime, context }, rootTask, cb) {
+  resolve({ proc, args }, io, { runtime, context }, parentTask, cb) {
     runtime(proc, context, cb, ...args);
   },
 }
@@ -189,7 +192,7 @@ const delay = {
       val,
     };
   },
-  resolve({ val, time }, io, engine, rootTask, cb) {
+  resolve({ val, time }, io, engine, parentTask, cb) {
     setTimeout(() => {
       cb(null, val);
     }, time);
@@ -210,7 +213,7 @@ const parallel = {
       effects,
     };
   },
-  resolve({ effects }, io, { resolveEffects }, rootTask, cb) {
+  resolve({ effects }, io, { resolveEffects }, parentTask, cb) {
     return Promise.all(effects.map(effect => {
       return new Promise((resolve, reject) => {
         resolveEffects(effect, (err, result) => {
@@ -245,7 +248,7 @@ const race = {
       effects,
     };
   },
-  resolve({ effects }, io, { resolveEffects }, rootTask, cb) {
+  resolve({ effects }, io, { resolveEffects }, parentTask, cb) {
     /**
      * Check if the effects are represented by a dictionary or an array
      */
@@ -317,7 +320,7 @@ const call = {
       args,
     };
   },
-  resolve({ func, args }, io, engine, rootTask, cb) {
+  resolve({ func, args }, io, engine, parentTask, cb) {
     let result;
     let error;
 
@@ -356,7 +359,7 @@ const safeCall = {
       args,
     };
   },
-  resolve({ func, args }, io, engine, rootTask, cb) {
+  resolve({ func, args }, io, engine, parentTask, cb) {
     let result;
     let error;
 
@@ -388,8 +391,8 @@ const cps = {
       args,
     };
   },
-  resolve({ func, args }, io, engine, rootTask, cb) {
-    return func(...args, rootTask, cb);
+  resolve({ func, args }, io, engine, parentTask, cb) {
+    return func(...args, parentTask, cb);
   },
 }
 
@@ -408,7 +411,7 @@ const putStream = {
       data,
     };
   },
-  resolve({ stream, data }, io, engine, rootTask, cb) {
+  resolve({ stream, data }, io, engine, parentTask, cb) {
     stream.write(data);
     cb(null);
   },
@@ -428,7 +431,7 @@ const takeStream = {
       stream,
     };
   },
-  resolve({ stream }, io, engine, rootTask, cb) {
+  resolve({ stream }, io, engine, parentTask, cb) {
     const listener = (data) => {
       stream.removeListener('data', listener);
       cb(null, data);
@@ -453,7 +456,7 @@ const takeEvent = {
       event,
     };
   },
-  resolve({ emitter, event, data }, io, engine, rootTask, cb) {
+  resolve({ emitter, event, data }, io, engine, parentTask, cb) {
     const listener = (data) => {
       emitter.removeListener(event, listener);
       cb(null, data);
@@ -479,7 +482,7 @@ const putEvent = {
       data,
     };
   },
-  resolve({ emitter, event, data }, io, engine, rootTask, cb) {
+  resolve({ emitter, event, data }, io, engine, parentTask, cb) {
     emitter.emit(event, data);
     cb(null);
   },
@@ -505,7 +508,7 @@ const select = {
     selector = (state) => state,
   }, {
     getState = () => { console.log('No IO for getState present') },
-  }, engine, rootTask, cb) {
+  }, engine, parentTask, cb) {
     cb(null, selector(getState()));
   },
 }
@@ -525,7 +528,7 @@ const putAction = {
       action,
     };
   },
-  resolve({ action }, { dispatch }, engine, rootTask, cb) {
+  resolve({ action }, { dispatch }, engine, parentTask, cb) {
     cb(null, dispatch(action));
   },
 }
@@ -547,7 +550,7 @@ const takeAction = {
       actionType,
     };
   },
-  resolve({ actionType = '*' }, { subscribe }, engine, rootTask, cb) {
+  resolve({ actionType = '*' }, { subscribe }, engine, parentTask, cb) {
     const unsubscribe = subscribe((action = {}) => {
       const { type = '' } = action;
 
@@ -578,7 +581,7 @@ const take = {
       typeOrPattern,
     };
   },
-  resolve({ typeOrPattern = '*' }, { subscribe }, engine, rootTask, cb) {
+  resolve({ typeOrPattern = '*' }, { subscribe }, engine, parentTask, cb) {
     const unsubscribe = subscribe((action = {}) => {
       const { type = '' } = action;
       unsubscribe();
@@ -602,7 +605,7 @@ const put = {
       action,
     };
   },
-  resolve({ action }, { dispatch }, engine, rootTask, cb) {
+  resolve({ action }, { dispatch }, engine, parentTask, cb) {
     cb(null, dispatch(action));
   },
 }
@@ -622,7 +625,7 @@ const putChannel = {
       message,
     };
   },
-  resolve({ channel, message }, io, engine, rootTask, cb) {
+  resolve({ channel, message }, io, engine, parentTask, cb) {
     channel.put(message);
     cb();
   },
@@ -642,7 +645,7 @@ const takeChannel = {
       channel,
     };
   },
-  resolve({ channel }, io, engine, rootTask, cb) {
+  resolve({ channel }, io, engine, parentTask, cb) {
     channel.take((msg) => {
       cb(null, msg);
     });
@@ -661,7 +664,7 @@ const getContext = {
       type: '@@get-context',
     };
   },
-  resolve(effect, io, { context }, rootTask, cb) {
+  resolve(effect, io, { context }, parentTask, cb) {
     cb(null, context);
   },
 }
@@ -679,7 +682,7 @@ const setContext = {
       update,
     };
   },
-  resolve({ update }, io, { context }, rootTask, cb) {
+  resolve({ update }, io, { context }, parentTask, cb) {
     Object.assign(context, update);
     cb();
   },
