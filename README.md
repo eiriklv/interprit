@@ -84,7 +84,7 @@ const effects = {
         args,
       };
     },
-    resolve(description, io, engine, cb) {
+    resolve(description, io, engine, parentTask, cb) {
       /**
        * Handle the resolving of the effect
        * and call back the result
@@ -116,7 +116,7 @@ const effects = {
         args,
       };
     },
-    resolve({ func, args }, io, engine, cb) {
+    resolve({ func, args }, io, engine, parentTask, cb) {
       let result;
       let error;
 
@@ -146,7 +146,7 @@ const effects = {
         action,
       };
     },
-    resolve({ action }, { dispatch }, engine, cb) {
+    resolve({ action }, { dispatch }, engine, parentTask, cb) {
       cb(null, dispatch(action));
     },
   }
