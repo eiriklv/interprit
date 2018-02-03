@@ -32,9 +32,7 @@ module.exports.channel = function channel(buffer) {
     },
     take(callback) {
       if (!buffer.isEmpty()) {
-        console.log('yo');
         const msg = buffer.take();
-        console.log(msg);
         callback(msg);
       } else if (buffer.isEmpty() && isClosed) {
         callback(END);

@@ -67,6 +67,7 @@ function logMiddleware(effect) {
 function* subProcess() {
   const a = yield 100;
   const b = yield 500;
+  yield call.describe(delay, 5000);
   return a + b;
 }
 

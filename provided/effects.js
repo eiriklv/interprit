@@ -16,7 +16,7 @@ const {
  * NOTE: This just logs the state at the moment
  * TODO: Make this render a React app into the DOM
  */
-const render = {
+module.exports.render = {
   describe(app, commands, state) {
     return {
       type: '@@render',
@@ -45,7 +45,7 @@ const render = {
  * TODO: Might need more work regarding attaching / detaching
  * (see how redux-saga solves this)
  */
-const fork = {
+module.exports.fork = {
   describe(proc, ...args) {
     return {
       type: '@@fork',
@@ -69,7 +69,7 @@ const fork = {
  * Also handles nested cancellation, so that the
  * root task will be cancelled if the joined fork cancels
  */
-const join = {
+module.exports.join = {
   describe(task) {
     return {
       type: '@@join',
@@ -101,7 +101,7 @@ const join = {
  *
  * Cancels the task and returns nothing
  */
-const cancel = {
+module.exports.cancel = {
   describe(task) {
     return {
       type: '@@cancel',
@@ -119,7 +119,7 @@ const cancel = {
  *
  * Returns true/false
  */
-const cancelled = {
+module.exports.cancelled = {
   describe() {
     return {
       type: '@@cancelled',
@@ -143,7 +143,7 @@ const cancelled = {
  * TODO: Work needed regarding attaching / detaching
  * (see how redux-saga does this)
  */
-const spawn = {
+module.exports.spawn = {
   describe(proc, ...args) {
     return {
       type: '@@spawn',
@@ -155,7 +155,7 @@ const spawn = {
     runtime(proc, context, undefined, ...args);
     cb();
   },
-}
+};
 
 /**
  * Create an effect bundle for calling
@@ -166,7 +166,7 @@ const spawn = {
  * NOTE: Waits for the return value of the
  * process before continuing (blocking)
  */
-const callProc = {
+module.exports.callProc = {
   describe(proc, ...args) {
     return {
       type: '@@callProc',
@@ -177,14 +177,14 @@ const callProc = {
   resolve({ proc, args }, io, { runtime, context }, parentTask, cb) {
     runtime(proc, context, cb, ...args);
   },
-}
+};
 
 /**
  * Create promise delay effect bundle
  *
  * Handle an effect spec of the delay type
  */
-const delay = {
+module.exports.delay = {
   describe(time, val) {
     return {
       type: '@@delay',
@@ -197,7 +197,7 @@ const delay = {
       cb(null, val);
     }, time);
   },
-}
+};
 
 /**
  * NOTE: Higher order effect bundle
@@ -206,7 +206,7 @@ const delay = {
  *
  * Handle an effect spec of the parallel type
  */
-const parallel = {
+module.exports.parallel = {
   describe(effects) {
     return {
       type: '@@parallel',
@@ -228,7 +228,7 @@ const parallel = {
     .then((result) => cb(null, result))
     .catch((error) => cb(error));
   },
-}
+};
 
 /**
  * NOTE: Higher order effect
@@ -241,7 +241,7 @@ const parallel = {
  * - Array => [effectOne, effectTwo, ...]
  * - Dictionary =>  { effectsOne: effect, effectTwo: effect, ...}
  */
-const race = {
+module.exports.race = {
   describe(effects) {
     return {
       type: '@@race',
@@ -301,7 +301,7 @@ const race = {
     .then((result) => cb(null, result))
     .catch((error) => cb(error));
   },
-}
+};
 
 /**
  * Create an effect bundle for calling
@@ -312,7 +312,7 @@ const race = {
  * which resolves both synchronous function
  * calls and function calls that returns a promise
  */
-const call = {
+module.exports.call = {
   describe(func, ...args) {
     return {
       type: '@@call',
@@ -334,7 +334,7 @@ const call = {
     .then((res) => cb(null, res))
     .catch((err) => cb(err));
   },
-}
+};
 
 /**
  * Create an effect bundle for calling
@@ -351,7 +351,7 @@ const call = {
  * NOTE: This will return a "tuple" (array of the form [error, result])
  * containing a possible error instead of throwing
  */
-const safeCall = {
+module.exports.safeCall = {
   describe(func, ...args) {
     return {
       type: '@@safeCall',
@@ -372,7 +372,7 @@ const safeCall = {
     return safePromise(error ? Promise.reject(error) : Promise.resolve(result))
     .then(([err, res]) => cb(null, [err, res]));
   },
-}
+};
 
 /**
  * Create an effect bundle for calling
@@ -383,7 +383,7 @@ const safeCall = {
  * which resolves both synchronous function
  * calls and function calls that returns a promise
  */
-const cps = {
+module.exports.cps = {
   describe(func, ...args) {
     return {
       type: '@@cps',
@@ -394,7 +394,7 @@ const cps = {
   resolve({ func, args }, io, engine, parentTask, cb) {
     return func(...args, parentTask, cb);
   },
-}
+};
 
 /**
  * Create an effect bundle for putting
@@ -403,7 +403,7 @@ const cps = {
  * Handle an effect spec of the put-stream
  * type which resolves putting a value on a stream
  */
-const putStream = {
+module.exports.putStream = {
   describe(stream, data) {
     return {
       type: '@@putStream',
@@ -415,7 +415,7 @@ const putStream = {
     stream.write(data);
     cb(null);
   },
-}
+};
 
 /**
  * Create an effect bundle for taking
@@ -424,7 +424,7 @@ const putStream = {
  * Handle an effect spec of the take-stream
  * type which resolves taking a value from a stream
  */
-const takeStream = {
+module.exports.takeStream = {
   describe(stream) {
     return {
       type: '@@takeStream',
@@ -438,7 +438,7 @@ const takeStream = {
     }
     stream.on('data', listener);
   },
-}
+};
 
 /**
  * Create an effect bundle for taking
@@ -448,7 +448,7 @@ const takeStream = {
  * type which resolves taking an event from
  * an event emitter
  */
-const takeEvent = {
+module.exports.takeEvent = {
   describe(emitter, event) {
     return {
       type: '@@takeEvent',
@@ -463,7 +463,7 @@ const takeEvent = {
     }
     emitter.on(event, listener);
   },
-}
+};
 
 /**
  * Create an effect bundle for putting
@@ -473,7 +473,7 @@ const takeEvent = {
  * type which resolves putting an event
  * on an event emitter
  */
-const putEvent = {
+module.exports.putEvent = {
   describe(emitter, event, data) {
     return {
       type: '@@putEvent',
@@ -486,7 +486,7 @@ const putEvent = {
     emitter.emit(event, data);
     cb(null);
   },
-}
+};
 
 /**
  * Create an effect bundle for selecting
@@ -497,7 +497,7 @@ const putEvent = {
  * type which resolves selecting state
  * from the io
  */
-const select = {
+module.exports.select = {
   describe(selector) {
     return {
       type: '@@select',
@@ -511,7 +511,7 @@ const select = {
   }, engine, parentTask, cb) {
     cb(null, selector(getState()));
   },
-}
+};
 
 /**
  * Create an effect bundle for putting
@@ -521,7 +521,7 @@ const select = {
  * type which resolves dispatching actions
  * into the io system
  */
-const putAction = {
+module.exports.putAction = {
   describe(action) {
     return {
       type: '@@putAction',
@@ -531,7 +531,7 @@ const putAction = {
   resolve({ action }, { dispatch }, engine, parentTask, cb) {
     cb(null, dispatch(action));
   },
-}
+};
 
 /**
  * Create an effect bundle for taking
@@ -543,7 +543,7 @@ const putAction = {
  *
  * TODO: Support patterns other than '*'?
  */
-const takeAction = {
+module.exports.takeAction = {
   describe(actionType) {
     return {
       type: '@@takeAction',
@@ -563,7 +563,7 @@ const takeAction = {
       }
     });
   },
-}
+};
 
 /**
  * Create an effect bundle for taking
@@ -574,7 +574,7 @@ const takeAction = {
  * type which resolves taking actions from
  * the io system
  */
-const take = {
+module.exports.take = {
   describe(typeOrPattern) {
     return {
       type: '@@take',
@@ -588,7 +588,7 @@ const take = {
       cb(null, action);
     }, typeOrPattern);
   },
-}
+};
 
 /**
  * Create an effect bundle for putting
@@ -598,7 +598,7 @@ const take = {
  * type which resolves dispatching actions
  * into the io system
  */
-const put = {
+module.exports.put = {
   describe(action) {
     return {
       type: '@@put',
@@ -608,7 +608,7 @@ const put = {
   resolve({ action }, { dispatch }, engine, parentTask, cb) {
     cb(null, dispatch(action));
   },
-}
+};
 
 /**
  * Create an effect bundle for putting
@@ -617,7 +617,7 @@ const put = {
  * Handle an effect spec of the put-channel
  * type which resolves putting messages into channels
  */
-const putChannel = {
+module.exports.putChannel = {
   describe(channel, message) {
     return {
       type: '@@put-channel',
@@ -629,7 +629,7 @@ const putChannel = {
     channel.put(message);
     cb();
   },
-}
+};
 
 /**
  * Create an effect bundle for taking
@@ -638,7 +638,7 @@ const putChannel = {
  * Handle an effect spec of the take-channel
  * type which resolves taking messages from channels
  */
-const takeChannel = {
+module.exports.takeChannel = {
   describe(channel) {
     return {
       type: '@@take-channel',
@@ -650,7 +650,7 @@ const takeChannel = {
       cb(null, msg);
     });
   },
-}
+};
 
 /**
  * Create an effect bundle for getting the shared context
@@ -658,7 +658,7 @@ const takeChannel = {
  * Handle an effect spec of the get-context
  * type which resolves getting the shared context
  */
-const getContext = {
+module.exports.getContext = {
   describe() {
     return {
       type: '@@get-context',
@@ -667,7 +667,7 @@ const getContext = {
   resolve(effect, io, { context }, parentTask, cb) {
     cb(null, context);
   },
-}
+};
 
 /**
  * Create an effect bundle for setting something on the shared context
@@ -675,7 +675,7 @@ const getContext = {
  * Handle an effect spec of the set-context
  * type which resolves setting something on the shared context
  */
-const setContext = {
+module.exports.setContext = {
   describe(update) {
     return {
       type: '@@set-context',
@@ -686,36 +686,4 @@ const setContext = {
     Object.assign(context, update);
     cb();
   },
-}
-
-/**
- * Exports
- */
-module.exports = {
-  fork,
-  join,
-  cancel,
-  cancelled,
-  spawn,
-  delay,
-  call,
-  safeCall,
-  callProc,
-  cps,
-  race,
-  parallel,
-  put,
-  take,
-  putChannel,
-  takeChannel,
-  putAction,
-  takeAction,
-  putStream,
-  takeStream,
-  putEvent,
-  takeEvent,
-  select,
-  render,
-  getContext,
-  setContext,
-}
+};
