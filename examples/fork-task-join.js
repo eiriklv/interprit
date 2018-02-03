@@ -64,7 +64,7 @@ function logMiddleware(effect) {
  * A process that communicates with
  * another process over a channel
  */
-function* subProcess() {
+function* subProcess1() {
   const a = yield 100;
   const b = yield 500;
   yield call.describe(delay, 5000);
@@ -72,13 +72,24 @@ function* subProcess() {
 }
 
 /**
+ * A process that communicates with
+ * another process over a channel
+ */
+function* subProcess2() {
+  return 1000;
+}
+
+/**
  * Main process
  */
 function* mainProcess() {
-  const task1 = yield fork.describe(subProcess);
-  const result = yield join.describe(task1);
+  const task1 = yield fork.describe(subProcess1);
+  const result1 = yield join.describe(task1);
 
-  console.log(result);
+  const task2 = yield fork.describe(subProcess2);
+  const result2 = yield join.describe(task2);
+
+  console.log(result1, result2);
 }
 
 /**
