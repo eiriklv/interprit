@@ -19,7 +19,9 @@ const END = module.exports.END = Symbol('@@channel_end');
 const isEndOfChannel = module.exports.isEndOfChannel = (input) => input === END;
 
 /**
- * Channel implementation
+ * Async channel implementation (buffered)
+ *
+ * NOTE: Put operations will NOT block
  */
 const channel = module.exports.channel = function channel(buffer) {
   buffer = buffer || sliding(10);
@@ -75,7 +77,9 @@ const channel = module.exports.channel = function channel(buffer) {
 }
 
 /**
- * Channel implementation
+ * Synchronous channel implementation
+ *
+ * NOTE: Put operations will block
  */
 const syncChannel = module.exports.syncChannel = function syncChannel() {
   let isClosed = false;
