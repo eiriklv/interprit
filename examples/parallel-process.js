@@ -64,14 +64,14 @@ function* parallelProcess() {
     /**
      * Perform two async races in parallel
      */
-    const data = yield parallel.describe([
-      race.describe([
-        call.describe(delay, delayTable[0], 10),
-        call.describe(delay, delayTable[1], 20),
+    const data = yield parallel([
+      race([
+        call(delay, delayTable[0], 10),
+        call(delay, delayTable[1], 20),
       ]),
-      race.describe([
-        call.describe(delay, delayTable[2], 30),
-        call.describe(delay, delayTable[3], 40),
+      race([
+        call(delay, delayTable[2], 30),
+        call(delay, delayTable[3], 40),
       ]),
     ]);
 
@@ -86,7 +86,7 @@ function* parallelProcess() {
      * that handles calling methods
      * with correct this context
      */
-    yield call.describe(console.log.bind(console), `${data}`);
+    yield call(console.log.bind(console), `${data}`);
   }
 }
 

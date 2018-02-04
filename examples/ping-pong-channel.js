@@ -59,10 +59,10 @@ function logMiddleware(effect) {
  */
 function* subProcess1({ channel }) {
   while (true) {
-    yield call.describe(delay, 2000);
-    yield putChannel.describe(channel, 'ping!');
-    const data = yield takeChannel.describe(channel);
-    yield putStream.describe(process.stdout, `(1) event received: ${data}\n`);
+    yield call(delay, 2000);
+    yield putChannel(channel, 'ping!');
+    const data = yield takeChannel(channel);
+    yield putStream(process.stdout, `(1) event received: ${data}\n`);
   }
 }
 
@@ -72,10 +72,10 @@ function* subProcess1({ channel }) {
  */
 function* subProcess2({ channel }) {
   while (true) {
-    const data = yield takeChannel.describe(channel);
-    yield putStream.describe(process.stdout, `(2) event received: ${data}\n`);
-    yield call.describe(delay, 2000);
-    yield putChannel.describe(channel, 'pong!');
+    const data = yield takeChannel(channel);
+    yield putStream(process.stdout, `(2) event received: ${data}\n`);
+    yield call(delay, 2000);
+    yield putChannel(channel, 'pong!');
   }
 }
 
@@ -83,9 +83,9 @@ function* subProcess2({ channel }) {
  * Main process
  */
 function* mainProcess() {
-  const channel = yield call.describe(createChannel);
-  yield fork.describe(subProcess1, { channel });
-  yield fork.describe(subProcess2, { channel });
+  const channel = yield call(createChannel);
+  yield fork(subProcess1, { channel });
+  yield fork(subProcess2, { channel });
 }
 
 /**

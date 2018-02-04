@@ -16,21 +16,20 @@ const {
  * NOTE: This just logs the state at the moment
  * TODO: Make this render a React app into the DOM
  */
-module.exports.render = {
-  describe(app, commands, state) {
-    return {
-      type: '@@render',
-      app,
-      commands,
-      state,
-    };
-  },
-  resolve({ app, commands, state }, io, engine, parentTask, cb) {
-    console.log('rendering app:');
-    console.log(app({ commands, state }));
-    cb();
-  },
-}
+module.exports.render = function describeRender(app, commands, state) {
+  return {
+    type: '@@render',
+    app,
+    commands,
+    state,
+  };
+};
+
+module.exports.render.resolve = function resolveRender({ app, commands, state }, io, engine, parentTask, cb) {
+  console.log('rendering app:');
+  console.log(app({ commands, state }));
+  cb();
+};
 
 /**
  * Create an effect bundle for forking
@@ -45,20 +44,19 @@ module.exports.render = {
  * TODO: Might need more work regarding attaching / detaching
  * (see how redux-saga solves this)
  */
-module.exports.fork = {
-  describe(proc, ...args) {
-    return {
-      type: '@@fork',
-      proc,
-      args,
-    };
-  },
-  resolve({ proc, args }, io, { runtime, context }, parentTask, cb) {
-    const task = runtime(proc, context, undefined, ...args);
-    parentTask.attachFork(task);
-    cb(null, task);
-  },
-}
+module.exports.fork = function describeFork(proc, ...args) {
+  return {
+    type: '@@fork',
+    proc,
+    args,
+  };
+};
+
+module.exports.fork.resolve = function resolveFork({ proc, args }, io, { runtime, context }, parentTask, cb) {
+  const task = runtime(proc, context, undefined, ...args);
+  parentTask.attachFork(task);
+  cb(null, task);
+};
 
 /**
  * Create an effect bundle for
@@ -69,31 +67,30 @@ module.exports.fork = {
  * Also handles nested cancellation, so that the
  * root task will be cancelled if the joined fork cancels
  */
-module.exports.join = {
-  describe(task) {
-    return {
-      type: '@@join',
-      task,
-    };
-  },
-  resolve({ task }, io, { runtime, context }, parentTask, cb) {
-    task.done
-    .then((result) => {
-      /**
-       * If a joined task is cancelled it should cancel the parent task as well
-       */
-      if (task.isCancelled() && !parentTask.isCancelled()) {
-        parentTask.cancel();
-        cb();
-      } else {
-        cb(null, result);
-      }
-    })
-    .catch((error) => {
-      cb(error);
-    });
-  },
-}
+module.exports.join = function describeJoin(task) {
+  return {
+    type: '@@join',
+    task,
+  };
+};
+
+module.exports.join.resolve = function resolveJoin({ task }, io, { runtime, context }, parentTask, cb) {
+  task.done
+  .then((result) => {
+    /**
+     * If a joined task is cancelled it should cancel the parent task as well
+     */
+    if (task.isCancelled() && !parentTask.isCancelled()) {
+      parentTask.cancel();
+      cb();
+    } else {
+      cb(null, result);
+    }
+  })
+  .catch((error) => {
+    cb(error);
+  });
+};
 
 /**
  * Create an effect bundle for cancelling
@@ -101,17 +98,16 @@ module.exports.join = {
  *
  * Cancels the task and returns nothing
  */
-module.exports.cancel = {
-  describe(task) {
-    return {
-      type: '@@cancel',
-      task,
-    };
-  },
-  resolve({ task }, io, { runtime, context }, parentTask, cb) {
-    cb(null, task.cancel());
-  },
-}
+module.exports.cancel = function describeCancel(task) {
+  return {
+    type: '@@cancel',
+    task,
+  };
+};
+
+module.exports.cancel.resolve = function resolveCancel({ task }, io, { runtime, context }, parentTask, cb) {
+  cb(null, task.cancel());
+};
 
 /**
  * Create an effect bundle for checking
@@ -119,16 +115,15 @@ module.exports.cancel = {
  *
  * Returns true/false
  */
-module.exports.cancelled = {
-  describe() {
-    return {
-      type: '@@cancelled',
-    };
-  },
-  resolve({}, io, { runtime, context }, parentTask, cb) {
-    cb(null, parentTask.isCancelled());
-  },
-}
+module.exports.cancelled = function describeCancelled() {
+  return {
+    type: '@@cancelled',
+  };
+};
+
+module.exports.cancelled.resolve = function resolveCancelled({}, io, { runtime, context }, parentTask, cb) {
+  cb(null, parentTask.isCancelled());
+};
 
 /**
  * Create an effect bundle for spawning
@@ -143,18 +138,17 @@ module.exports.cancelled = {
  * TODO: Work needed regarding attaching / detaching
  * (see how redux-saga does this)
  */
-module.exports.spawn = {
-  describe(proc, ...args) {
-    return {
-      type: '@@spawn',
-      proc,
-      args,
-    };
-  },
-  resolve({ proc, args }, io, { runtime, context }, parentTask, cb) {
-    runtime(proc, context, undefined, ...args);
-    cb();
-  },
+module.exports.spawn = function describeSpawn(proc, ...args) {
+  return {
+    type: '@@spawn',
+    proc,
+    args,
+  };
+};
+
+module.exports.spawn.resolve = function resolveSpawn({ proc, args }, io, { runtime, context }, parentTask, cb) {
+  runtime(proc, context, undefined, ...args);
+  cb();
 };
 
 /**
@@ -166,17 +160,16 @@ module.exports.spawn = {
  * NOTE: Waits for the return value of the
  * process before continuing (blocking)
  */
-module.exports.callProc = {
-  describe(proc, ...args) {
-    return {
-      type: '@@callProc',
-      proc,
-      args,
-    };
-  },
-  resolve({ proc, args }, io, { runtime, context }, parentTask, cb) {
-    runtime(proc, context, cb, ...args);
-  },
+module.exports.callProc = function describeCallProc(proc, ...args) {
+  return {
+    type: '@@callProc',
+    proc,
+    args,
+  };
+};
+
+module.exports.callProc.resolve = function resolveCallProc({ proc, args }, io, { runtime, context }, parentTask, cb) {
+  runtime(proc, context, cb, ...args);
 };
 
 /**
@@ -184,19 +177,18 @@ module.exports.callProc = {
  *
  * Handle an effect spec of the delay type
  */
-module.exports.delay = {
-  describe(time, val) {
-    return {
-      type: '@@delay',
-      time,
-      val,
-    };
-  },
-  resolve({ val, time }, io, engine, parentTask, cb) {
-    setTimeout(() => {
-      cb(null, val);
-    }, time);
-  },
+module.exports.delay = function describeDelay(time, val) {
+  return {
+    type: '@@delay',
+    time,
+    val,
+  };
+};
+
+module.exports.delay.resolve = function resolveDelay({ val, time }, io, engine, parentTask, cb) {
+  setTimeout(() => {
+    cb(null, val);
+  }, time);
 };
 
 /**
@@ -206,28 +198,27 @@ module.exports.delay = {
  *
  * Handle an effect spec of the parallel type
  */
-module.exports.parallel = {
-  describe(effects) {
-    return {
-      type: '@@parallel',
-      effects,
-    };
-  },
-  resolve({ effects }, io, { resolveEffects }, parentTask, cb) {
-    return Promise.all(effects.map(effect => {
-      return new Promise((resolve, reject) => {
-        resolveEffects(effect, (err, result) => {
-          if (err) {
-            return reject(err);
-          } else {
-            return resolve(result);
-          }
-        })
-      });
-    }))
-    .then((result) => cb(null, result))
-    .catch((error) => cb(error));
-  },
+module.exports.parallel = function describeParallel(effects) {
+  return {
+    type: '@@parallel',
+    effects,
+  };
+};
+
+module.exports.parallel.resolve = function resolveParallel({ effects }, io, { resolveEffects }, parentTask, cb) {
+  return Promise.all(effects.map(effect => {
+    return new Promise((resolve, reject) => {
+      resolveEffects(effect, (err, result) => {
+        if (err) {
+          return reject(err);
+        } else {
+          return resolve(result);
+        }
+      })
+    });
+  }))
+  .then((result) => cb(null, result))
+  .catch((error) => cb(error));
 };
 
 /**
@@ -241,66 +232,65 @@ module.exports.parallel = {
  * - Array => [effectOne, effectTwo, ...]
  * - Dictionary =>  { effectsOne: effect, effectTwo: effect, ...}
  */
-module.exports.race = {
-  describe(effects) {
-    return {
-      type: '@@race',
-      effects,
-    };
-  },
-  resolve({ effects }, io, { resolveEffects }, parentTask, cb) {
+module.exports.race = function describeRace(effects) {
+  return {
+    type: '@@race',
+    effects,
+  };
+};
+
+module.exports.race.resolve = function resolveRace({ effects }, io, { resolveEffects }, parentTask, cb) {
+  /**
+   * Check if the effects are represented by a dictionary or an array
+   */
+  const isDictionary = (
+    typeof effects === 'object' &&
+    !Array.isArray(effects)
+  );
+
+  /**
+   * Handle dictionary effects
+   */
+  if (isDictionary) {
     /**
-     * Check if the effects are represented by a dictionary or an array
+     * Get all the effect labels
      */
-    const isDictionary = (
-      typeof effects === 'object' &&
-      !Array.isArray(effects)
-    );
+    const labels = Object.keys(effects);
 
     /**
-     * Handle dictionary effects
+     * Resolve the effects recursively
      */
-    if (isDictionary) {
-      /**
-       * Get all the effect labels
-       */
-      const labels = Object.keys(effects);
-
-      /**
-       * Resolve the effects recursively
-       */
-      return Promise.race(labels.map((label) => {
-        return new Promise((resolve, reject) => {
-          resolveEffects(effects[label], (err, result) => {
-            if (err) {
-              return reject(err);
-            } else {
-              return resolve({ [label]: result });
-            }
-          });
-        });
-      }))
-      .then((result) => cb(null, result))
-      .catch((error) => cb(error));
-    }
-
-    /**
-     * Handle array effects
-     */
-    return Promise.race(effects.map(effect => {
+    return Promise.race(labels.map((label) => {
       return new Promise((resolve, reject) => {
-        resolveEffects(effect, (err, result) => {
+        resolveEffects(effects[label], (err, result) => {
           if (err) {
             return reject(err);
           } else {
-            return resolve(result);
+            return resolve({ [label]: result });
           }
         });
       });
     }))
     .then((result) => cb(null, result))
     .catch((error) => cb(error));
-  },
+  }
+
+  /**
+   * Handle array effects
+   */
+  return Promise.race(effects.map(effect => {
+    return new Promise((resolve, reject) => {
+      resolveEffects(effect, (err, result) => {
+        if (err) {
+          return reject(err);
+        } else {
+          return resolve(result);
+        }
+      });
+    });
+  }))
+  .then((result) => cb(null, result))
+  .catch((error) => cb(error));
 };
 
 /**
@@ -312,28 +302,27 @@ module.exports.race = {
  * which resolves both synchronous function
  * calls and function calls that returns a promise
  */
-module.exports.call = {
-  describe(func, ...args) {
+module.exports.call = function describeCall(func, ...args) {
     return {
       type: '@@call',
       func,
       args,
     };
-  },
-  resolve({ func, args }, io, engine, parentTask, cb) {
-    let result;
-    let error;
+  };
 
-    try {
-      result = func(...args);
-    } catch (e) {
-      error = e;
-    }
+module.exports.call.resolve = function resolveCall({ func, args }, io, engine, parentTask, cb) {
+  let result;
+  let error;
 
-    return (error ? Promise.reject(error) : Promise.resolve(result))
-    .then((res) => cb(null, res))
-    .catch((err) => cb(err));
-  },
+  try {
+    result = func(...args);
+  } catch (e) {
+    error = e;
+  }
+
+  return (error ? Promise.reject(error) : Promise.resolve(result))
+  .then((res) => cb(null, res))
+  .catch((err) => cb(err));
 };
 
 /**
@@ -351,27 +340,26 @@ module.exports.call = {
  * NOTE: This will return a "tuple" (array of the form [error, result])
  * containing a possible error instead of throwing
  */
-module.exports.safeCall = {
-  describe(func, ...args) {
+module.exports.safeCall = function describeSafeCall(func, ...args) {
     return {
       type: '@@safeCall',
       func,
       args,
     };
-  },
-  resolve({ func, args }, io, engine, parentTask, cb) {
-    let result;
-    let error;
+  };
 
-    try {
-      result = func(...args);
-    } catch (e) {
-      error = e;
-    }
+module.exports.safeCall.resolve = function resolveSafeCall({ func, args }, io, engine, parentTask, cb) {
+  let result;
+  let error;
 
-    return safePromise(error ? Promise.reject(error) : Promise.resolve(result))
-    .then(([err, res]) => cb(null, [err, res]));
-  },
+  try {
+    result = func(...args);
+  } catch (e) {
+    error = e;
+  }
+
+  return safePromise(error ? Promise.reject(error) : Promise.resolve(result))
+  .then(([err, res]) => cb(null, [err, res]));
 };
 
 /**
@@ -383,17 +371,16 @@ module.exports.safeCall = {
  * which resolves both synchronous function
  * calls and function calls that returns a promise
  */
-module.exports.cps = {
-  describe(func, ...args) {
-    return {
-      type: '@@cps',
-      func,
-      args,
-    };
-  },
-  resolve({ func, args }, io, engine, parentTask, cb) {
-    return func(...args, parentTask, cb);
-  },
+module.exports.cps = function describeCps(func, ...args) {
+  return {
+    type: '@@cps',
+    func,
+    args,
+  };
+};
+
+module.exports.cps.resolve = function resolveCps({ func, args }, io, engine, parentTask, cb) {
+  return func(...args, parentTask, cb);
 };
 
 /**
@@ -403,18 +390,17 @@ module.exports.cps = {
  * Handle an effect spec of the put-stream
  * type which resolves putting a value on a stream
  */
-module.exports.putStream = {
-  describe(stream, data) {
-    return {
-      type: '@@putStream',
-      stream,
-      data,
-    };
-  },
-  resolve({ stream, data }, io, engine, parentTask, cb) {
-    stream.write(data);
-    cb(null);
-  },
+module.exports.putStream = function describePutStream(stream, data) {
+  return {
+    type: '@@putStream',
+    stream,
+    data,
+  };
+};
+
+module.exports.putStream.resolve = function resolvePutStream({ stream, data }, io, engine, parentTask, cb) {
+  stream.write(data);
+  cb(null);
 };
 
 /**
@@ -424,20 +410,19 @@ module.exports.putStream = {
  * Handle an effect spec of the take-stream
  * type which resolves taking a value from a stream
  */
-module.exports.takeStream = {
-  describe(stream) {
-    return {
-      type: '@@takeStream',
-      stream,
-    };
-  },
-  resolve({ stream }, io, engine, parentTask, cb) {
-    const listener = (data) => {
-      stream.removeListener('data', listener);
-      cb(null, data);
-    }
-    stream.on('data', listener);
-  },
+module.exports.takeStream = function describeTakeStream(stream) {
+  return {
+    type: '@@takeStream',
+    stream,
+  };
+};
+
+module.exports.takeStream.resolve = function resolveTakeStream({ stream }, io, engine, parentTask, cb) {
+  const listener = (data) => {
+    stream.removeListener('data', listener);
+    cb(null, data);
+  }
+  stream.on('data', listener);
 };
 
 /**
@@ -448,21 +433,20 @@ module.exports.takeStream = {
  * type which resolves taking an event from
  * an event emitter
  */
-module.exports.takeEvent = {
-  describe(emitter, event) {
-    return {
-      type: '@@takeEvent',
-      emitter,
-      event,
-    };
-  },
-  resolve({ emitter, event, data }, io, engine, parentTask, cb) {
-    const listener = (data) => {
-      emitter.removeListener(event, listener);
-      cb(null, data);
-    }
-    emitter.on(event, listener);
-  },
+module.exports.takeEvent = function describeTakeEvent(emitter, event) {
+  return {
+    type: '@@takeEvent',
+    emitter,
+    event,
+  };
+};
+
+module.exports.takeEvent.resolve = function resolveTakeEvent({ emitter, event, data }, io, engine, parentTask, cb) {
+  const listener = (data) => {
+    emitter.removeListener(event, listener);
+    cb(null, data);
+  }
+  emitter.on(event, listener);
 };
 
 /**
@@ -473,19 +457,18 @@ module.exports.takeEvent = {
  * type which resolves putting an event
  * on an event emitter
  */
-module.exports.putEvent = {
-  describe(emitter, event, data) {
-    return {
-      type: '@@putEvent',
-      emitter,
-      event,
-      data,
-    };
-  },
-  resolve({ emitter, event, data }, io, engine, parentTask, cb) {
-    emitter.emit(event, data);
-    cb(null);
-  },
+module.exports.putEvent = function describePutEvent(emitter, event, data) {
+  return {
+    type: '@@putEvent',
+    emitter,
+    event,
+    data,
+  };
+};
+
+module.exports.putEvent.resolve = function resolvePutEvent({ emitter, event, data }, io, engine, parentTask, cb) {
+  emitter.emit(event, data);
+  cb(null);
 };
 
 /**
@@ -497,20 +480,19 @@ module.exports.putEvent = {
  * type which resolves selecting state
  * from the io
  */
-module.exports.select = {
-  describe(selector) {
-    return {
-      type: '@@select',
-      selector,
-    };
-  },
-  resolve({
-    selector = (state) => state,
-  }, {
-    getState = () => { console.log('No IO for getState present') },
-  }, engine, parentTask, cb) {
-    cb(null, selector(getState()));
-  },
+module.exports.select = function describeSelect(selector) {
+  return {
+    type: '@@select',
+    selector,
+  };
+};
+
+module.exports.select.resolve = function resolveSelect({
+  selector = (state) => state,
+}, {
+  getState = () => { console.log('No IO for getState present') },
+}, engine, parentTask, cb) {
+  cb(null, selector(getState()));
 };
 
 /**
@@ -521,16 +503,15 @@ module.exports.select = {
  * type which resolves dispatching actions
  * into the io system
  */
-module.exports.putAction = {
-  describe(action) {
-    return {
-      type: '@@putAction',
-      action,
-    };
-  },
-  resolve({ action }, { dispatch }, engine, parentTask, cb) {
-    cb(null, dispatch(action));
-  },
+module.exports.putAction = function describePutAction(action) {
+  return {
+    type: '@@putAction',
+    action,
+  };
+};
+
+module.exports.putAction.resolve = function resolvePutAction({ action }, { dispatch }, engine, parentTask, cb) {
+  cb(null, dispatch(action));
 };
 
 /**
@@ -543,26 +524,25 @@ module.exports.putAction = {
  *
  * TODO: Support patterns other than '*'?
  */
-module.exports.takeAction = {
-  describe(actionType) {
-    return {
-      type: '@@takeAction',
-      actionType,
-    };
-  },
-  resolve({ actionType = '*' }, { subscribe }, engine, parentTask, cb) {
-    const unsubscribe = subscribe((action = {}) => {
-      const { type = '' } = action;
+module.exports.takeAction = function describeTakeAction(actionType) {
+  return {
+    type: '@@takeAction',
+    actionType,
+  };
+};
 
-      if (
-        actionType === type ||
-        actionType === '*'
-      ) {
-        unsubscribe();
-        cb(null, action);
-      }
-    });
-  },
+module.exports.takeAction.resolve = function resolveTakeAction({ actionType = '*' }, { subscribe }, engine, parentTask, cb) {
+  const unsubscribe = subscribe((action = {}) => {
+    const { type = '' } = action;
+
+    if (
+      actionType === type ||
+      actionType === '*'
+    ) {
+      unsubscribe();
+      cb(null, action);
+    }
+  });
 };
 
 /**
@@ -574,20 +554,19 @@ module.exports.takeAction = {
  * type which resolves taking actions from
  * the io system
  */
-module.exports.take = {
-  describe(typeOrPattern) {
-    return {
-      type: '@@take',
-      typeOrPattern,
-    };
-  },
-  resolve({ typeOrPattern = '*' }, { subscribe }, engine, parentTask, cb) {
-    const unsubscribe = subscribe((action = {}) => {
-      const { type = '' } = action;
-      unsubscribe();
-      cb(null, action);
-    }, typeOrPattern);
-  },
+module.exports.take = function describeTake(typeOrPattern) {
+  return {
+    type: '@@take',
+    typeOrPattern,
+  };
+};
+
+module.exports.take.resolve = function resolveTake({ typeOrPattern = '*' }, { subscribe }, engine, parentTask, cb) {
+  const unsubscribe = subscribe((action = {}) => {
+    const { type = '' } = action;
+    unsubscribe();
+    cb(null, action);
+  }, typeOrPattern);
 };
 
 /**
@@ -598,16 +577,15 @@ module.exports.take = {
  * type which resolves dispatching actions
  * into the io system
  */
-module.exports.put = {
-  describe(action) {
-    return {
-      type: '@@put',
-      action,
-    };
-  },
-  resolve({ action }, { dispatch }, engine, parentTask, cb) {
-    cb(null, dispatch(action));
-  },
+module.exports.put = function describePut(action) {
+  return {
+    type: '@@put',
+    action,
+  };
+};
+
+module.exports.put.resolve = function resolvePut({ action }, { dispatch }, engine, parentTask, cb) {
+  cb(null, dispatch(action));
 };
 
 /**
@@ -617,18 +595,17 @@ module.exports.put = {
  * Handle an effect spec of the put-channel
  * type which resolves putting messages into channels
  */
-module.exports.putChannel = {
-  describe(channel, message) {
-    return {
-      type: '@@put-channel',
-      channel,
-      message,
-    };
-  },
-  resolve({ channel, message }, io, engine, parentTask, cb) {
-    channel.put(message);
-    cb();
-  },
+module.exports.putChannel = function describePutChannel(channel, message) {
+  return {
+    type: '@@put-channel',
+    channel,
+    message,
+  };
+};
+
+module.exports.putChannel.resolve = function resolvePutChannel({ channel, message }, io, engine, parentTask, cb) {
+  channel.put(message);
+  cb();
 };
 
 /**
@@ -638,52 +615,83 @@ module.exports.putChannel = {
  * Handle an effect spec of the take-channel
  * type which resolves taking messages from channels
  */
-module.exports.takeChannel = {
-  describe(channel) {
-    return {
-      type: '@@take-channel',
-      channel,
-    };
-  },
-  resolve({ channel }, io, engine, parentTask, cb) {
-    channel.take((msg) => {
-      cb(null, msg);
-    });
-  },
+module.exports.takeChannel = function describeTakeChannel(channel) {
+  return {
+    type: '@@take-channel',
+    channel,
+  };
+};
+
+module.exports.takeChannel.resolve = function resolveTakeChannel({ channel }, io, engine, parentTask, cb) {
+  channel.take((msg) => {
+    cb(null, msg);
+  });
 };
 
 /**
- * Create an effect bundle for getting the shared context
+ * Create an effect bundle for getting the shared global context
  *
  * Handle an effect spec of the get-context
  * type which resolves getting the shared context
  */
-module.exports.getContext = {
-  describe() {
-    return {
-      type: '@@get-context',
-    };
-  },
-  resolve(effect, io, { context }, parentTask, cb) {
-    cb(null, context);
-  },
+module.exports.getGlobalContext = function describeGetGlobalContext() {
+  return {
+    type: '@@get-global-context',
+  };
+};
+
+module.exports.getGlobalContext.resolve = function resolveGetGlobalContext(effect, io, { context }, parentTask, cb) {
+  cb(null, context);
 };
 
 /**
- * Create an effect bundle for setting something on the shared context
+ * Create an effect bundle for setting something on the shared global context
  *
  * Handle an effect spec of the set-context
  * type which resolves setting something on the shared context
  */
-module.exports.setContext = {
-  describe(update) {
-    return {
-      type: '@@set-context',
-      update,
-    };
-  },
-  resolve({ update }, io, { context }, parentTask, cb) {
-    Object.assign(context, update);
-    cb();
-  },
+module.exports.setGlobalContext = function describeSetGlobalContext(update) {
+  return {
+    type: '@@set-global-context',
+    update,
+  };
+};
+
+module.exports.setGlobalContext.resolve = function resolveSetGlobalContext({ update }, io, { context }, parentTask, cb) {
+  Object.assign(context, update);
+  cb();
+};
+
+/**
+ * Create an effect bundle for getting the shared local context
+ *
+ * Handle an effect spec of the get-context
+ * type which resolves getting the shared context
+ */
+module.exports.getLocalContext = function describeGetLocalContext() {
+  return {
+    type: '@@get-local-context',
+  };
+};
+
+module.exports.getLocalContext.resolve = function resolveGetLocalContext(effect, io, engine, { context }, cb) {
+  cb(null, context);
+};
+
+/**
+ * Create an effect bundle for setting something on the shared local context
+ *
+ * Handle an effect spec of the set-context
+ * type which resolves setting something on the shared context
+ */
+module.exports.setLocalContext = function describeSetLocalContext(update) {
+  return {
+    type: '@@set-local-context',
+    update,
+  };
+};
+
+module.exports.setLocalContext.resolve = function resolveSetLocalContext({ update }, io, engine, { context }, cb) {
+  Object.assign(context, update);
+  cb();
 };

@@ -53,8 +53,8 @@ function logMiddleware(effect) {
  */
 function* streamProcess() {
   while (true) {
-    const data = yield takeStream.describe(process.stdin);
-    yield putStream.describe(process.stdout, `message received: ${data}`);
+    const data = yield takeStream(process.stdin);
+    yield putStream(process.stdout, `message received: ${data}`);
   }
 }
 

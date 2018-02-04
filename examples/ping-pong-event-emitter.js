@@ -65,10 +65,10 @@ function logMiddleware(effect) {
  */
 function* socketProcessOne({ socket }) {
   while (true) {
-    yield call.describe(delay, 2000);
-    yield putEvent.describe(socket, 'my_event', 'ping!');
-    const data = yield takeEvent.describe(socket, 'my_event');
-    yield putStream.describe(process.stdout, `(1) event received: ${data}\n`);
+    yield call(delay, 2000);
+    yield putEvent(socket, 'my_event', 'ping!');
+    const data = yield takeEvent(socket, 'my_event');
+    yield putStream(process.stdout, `(1) event received: ${data}\n`);
   }
 }
 
@@ -79,10 +79,10 @@ function* socketProcessOne({ socket }) {
  */
 function* socketProcessTwo({ socket }) {
   while (true) {
-    const data = yield takeEvent.describe(socket, 'my_event');
-    yield putStream.describe(process.stdout, `(2) event received: ${data}\n`);
-    yield call.describe(delay, 2000);
-    yield putEvent.describe(socket, 'my_event', 'pong!');
+    const data = yield takeEvent(socket, 'my_event');
+    yield putStream(process.stdout, `(2) event received: ${data}\n`);
+    yield call(delay, 2000);
+    yield putEvent(socket, 'my_event', 'pong!');
   }
 }
 

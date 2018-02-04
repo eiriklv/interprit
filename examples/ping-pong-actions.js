@@ -61,9 +61,9 @@ function logMiddleware(effect) {
  */
 function* processOne() {
   while (true) {
-    yield takeAction.describe('PING');
-    yield call.describe(delay, 2000);
-    yield putAction.describe({ type: 'PONG' });
+    yield takeAction('PING');
+    yield call(delay, 2000);
+    yield putAction({ type: 'PONG' });
   }
 }
 
@@ -75,9 +75,9 @@ function* processOne() {
  */
 function* processTwo() {
   while (true) {
-    yield putAction.describe({ type: 'PING' });
-    yield takeAction.describe('PONG');
-    yield call.describe(delay, 2000);
+    yield putAction({ type: 'PING' });
+    yield takeAction('PONG');
+    yield call(delay, 2000);
   }
 }
 

@@ -93,8 +93,8 @@ const app = function (props) {
  */
 function* incrementCounter() {
   while (true) {
-    yield take.describe(commandTypes.INCREMENT_COUNTER_COMMAND);
-    yield put.describe({ type: eventTypes.INCREMENT_COUNTER_EVENT });
+    yield take(commandTypes.INCREMENT_COUNTER_COMMAND);
+    yield put({ type: eventTypes.INCREMENT_COUNTER_EVENT });
   }
 }
 
@@ -103,8 +103,8 @@ function* incrementCounter() {
  */
 function* decrementCounter() {
   while (true) {
-    yield take.describe(commandTypes.DECREMENT_COUNTER_COMMAND );
-    yield put.describe({ type: eventTypes.DECREMENT_COUNTER_EVENT });
+    yield take(commandTypes.DECREMENT_COUNTER_COMMAND );
+    yield put({ type: eventTypes.DECREMENT_COUNTER_EVENT });
   }
 }
 
@@ -131,7 +131,7 @@ const commands = {
  */
 function* effectsLoop() {
   while (true) {
-    const action = yield take.describe('*');
+    const action = yield take('*');
 
     switch (action.type) {
       case commandTypes.INCREMENT_COUNTER_COMMAND:
@@ -158,24 +158,24 @@ function* eventLoop() {
    * Listen to external events and then trigger puts when something happens
    */
   while (true) {
-    const data = yield takeStream.describe(process.stdin);
+    const data = yield takeStream(process.stdin);
     const command = data.toString().trim();
 
     switch (command) {
       case 'help':
-      yield putStream.describe(process.stdout, `> the available commands are \n- increment\n- decrement\n`);
+      yield putStream(process.stdout, `> the available commands are \n- increment\n- decrement\n`);
       break;
 
       case 'increment':
-      yield put.describe({ type: commandTypes.INCREMENT_COUNTER_COMMAND });
+      yield put({ type: commandTypes.INCREMENT_COUNTER_COMMAND });
       break;
 
       case 'decrement':
-      yield put.describe({ type: commandTypes.DECREMENT_COUNTER_COMMAND });
+      yield put({ type: commandTypes.DECREMENT_COUNTER_COMMAND });
       break;
 
       default:
-      yield putStream.describe(process.stdout, `invalid command input => ${command || 'blank'}\n`);
+      yield putStream(process.stdout, `invalid command input => ${command || 'blank'}\n`);
       break;
     }
   }
@@ -197,8 +197,8 @@ function* renderLoop() {
    * the state accordingly before rendering
    */
   while (true) {
-    yield render.describe(app, commands, state);
-    const action = yield take.describe('*');
+    yield render(app, commands, state);
+    const action = yield take('*');
     state = updateState(state, action);
   }
 }
@@ -207,12 +207,12 @@ function* renderLoop() {
  * Main saga
  */
 function* main() {
-  yield parallel.describe([
-    callProc.describe(renderLoop),
-    callProc.describe(effectsLoop),
-    callProc.describe(eventLoop),
-    callProc.describe(decrementCounter),
-    callProc.describe(incrementCounter),
+  yield parallel([
+    callProc(renderLoop),
+    callProc(effectsLoop),
+    callProc(eventLoop),
+    callProc(decrementCounter),
+    callProc(incrementCounter),
   ]);
 }
 

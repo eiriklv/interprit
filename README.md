@@ -69,88 +69,101 @@ Creating a set of effects you want your runtime to be able to resolve/handle.
 
 ```js
 /**
- * Signature
+ * Effect Description Signature
+ */
+const effectName = function describeEffectName(your, own, args) {
+  /**
+   * Return a description of your effect
+   */
+  return {
+    type: '@@your-own-type',
+    your,
+    own,
+    args,
+  };
+}
+
+/**
+ * Effect Resolver Signature
+ * NOTE: Attached to the effect description signature (!)
+ */
+effectName.resolve = function resolveEffectName(description, io, engine, parentTask, cb) {
+  /**
+   * Handle the resolving of the effect
+   * and call back the result
+   */
+  cb();
+}
+
+/**
+ * Effects Object Signature
  */
 const effects = {
-  effectName: {
-    describe(your, own, args) {
-      /**
-       * Return a description of your effect
-       */
-      return {
-        type: '@@your-own-type',
-        your,
-        own,
-        args,
-      };
-    },
-    resolve(description, io, engine, parentTask, cb) {
-      /**
-       * Handle the resolving of the effect
-       * and call back the result
-       */
-      cb();
-    }
-  }
-}
+  effectName,
+};
 ```
 
 Example:
 
 ```js
-const effects = {
-  /**
-   * Create an effect bundle for calling
-   * a function that returns a promise
-   * or a value and might have side effects
-   *
-   * Handles an effect spec of the call type
-   * which resolves both synchronous function
-   * calls and function calls that returns a promise
-   */
-  call: {
-    describe(func, ...args) {
-      return {
-        type: '@@call',
-        func,
-        args,
-      };
-    },
-    resolve({ func, args }, io, engine, parentTask, cb) {
-      let result;
-      let error;
+/**
+ * Create an effect bundle for calling
+ * a function that returns a promise
+ * or a value and might have side effects
+ *
+ * Handles an effect spec of the call type
+ * which resolves both synchronous function
+ * calls and function calls that returns a promise
+ */
+const call = function describeCall(func, ...args) {
+  return {
+    type: '@@call',
+    func,
+    args,
+  };
+};
 
-      try {
-        result = func(...args);
-      } catch (e) {
-        error = e;
-      }
+call.resolve = function resolveCall({ func, args }, io, engine, parentTask, cb) {
+  let result;
+  let error;
 
-      return (error ? Promise.reject(error) : Promise.resolve(result))
-      .then((res) => cb(null, res))
-      .catch((err) => cb(err));
-    },
-  },
-  /**
-   * Create an effect bundle for putting
-   * an action into the system
-   *
-   * Handle an effect spec of the put-action
-   * type which resolves dispatching actions
-   * into the io system
-   */
-  put: {
-    describe(action) {
-      return {
-        type: '@@put',
-        action,
-      };
-    },
-    resolve({ action }, { dispatch }, engine, parentTask, cb) {
-      cb(null, dispatch(action));
-    },
+  try {
+    result = func(...args);
+  } catch (e) {
+    error = e;
   }
-}
+
+  return (error ? Promise.reject(error) : Promise.resolve(result))
+  .then((res) => cb(null, res))
+  .catch((err) => cb(err));
+};
+
+const put = function describePut(action) {
+  return {
+    type: '@@put',
+    action,
+  };
+};
+
+/**
+ * Create an effect bundle for putting
+ * an action into the system
+ *
+ * Handle an effect spec of the put-action
+ * type which resolves dispatching actions
+ * into the io system
+ */
+put.resolve = function resolvePut({ action }, { dispatch }, engine, parentTask, cb) {
+  cb(null, dispatch(action));
+};
+
+/**
+ * Create an effects bundle that can be used by the engine
+ */
+const effects = {
+  call,
+  put,
+};
 ```
 
 ## Examples
@@ -225,9 +238,9 @@ function logMiddleware(effect) {
  */
 function* processOne() {
   while (true) {
-    yield takeAction.describe('PING');
-    yield call.describe(delay, 2000);
-    yield putAction.describe({ type: 'PONG' });
+    yield takeAction('PING');
+    yield call(delay, 2000);
+    yield putAction({ type: 'PONG' });
   }
 }
 
@@ -239,9 +252,9 @@ function* processOne() {
  */
 function* processTwo() {
   while (true) {
-    yield putAction.describe({ type: 'PING' });
-    yield takeAction.describe('PONG');
-    yield call.describe(delay, 2000);
+    yield putAction({ type: 'PING' });
+    yield takeAction('PONG');
+    yield call(delay, 2000);
   }
 }
 
@@ -252,8 +265,8 @@ function* processTwo() {
  */
 function* streamProcess() {
   while (true) {
-    const data = yield takeStream.describe(process.stdin);
-    yield putStream.describe(process.stdout, `message received: ${data}`);
+    const data = yield takeStream(process.stdin);
+    yield putStream(process.stdout, `message received: ${data}`);
   }
 }
 
@@ -264,10 +277,10 @@ function* streamProcess() {
  */
 function* socketProcessOne({ socket }) {
   while (true) {
-    yield call.describe(delay, 2000);
-    yield putEvent.describe(socket, 'my_event', 'ping!');
-    const data = yield takeEvent.describe(socket, 'my_event');
-    yield putStream.describe(process.stdout, `(1) event received: ${data}\n`);
+    yield call(delay, 2000);
+    yield putEvent(socket, 'my_event', 'ping!');
+    const data = yield takeEvent(socket, 'my_event');
+    yield putStream(process.stdout, `(1) event received: ${data}\n`);
   }
 }
 
@@ -279,9 +292,9 @@ function* socketProcessOne({ socket }) {
 function* socketProcessTwo({ socket }) {
   while (true) {
     const data = yield takeEvent(socket, 'my_event');
-    yield putStream.describe(process.stdout, `(2) event received: ${data}\n`);
-    yield call.describe(delay, 2000);
-    yield putEvent.describe(socket, 'my_event', 'pong!');
+    yield putStream(process.stdout, `(2) event received: ${data}\n`);
+    yield call(delay, 2000);
+    yield putEvent(socket, 'my_event', 'pong!');
   }
 }
 
@@ -291,8 +304,8 @@ function* socketProcessTwo({ socket }) {
  */
 function* stdEchoProcess() {
   while (true) {
-    const data = yield takeStream.describe(process.stdin);
-    yield putStream.describe(process.stdout, `${data}`);
+    const data = yield takeStream(process.stdin);
+    yield putStream(process.stdout, `${data}`);
   }
 }
 
@@ -307,12 +320,12 @@ function* raceProcess() {
     /**
      * Race two async calls
      */
-    const data = yield race.describe([
-      call.describe(delay, delayTable[0], 10),
-      call.describe(delay, delayTable[1], 20),
-      race.describe([
-        call.describe(delay, delayTable[2], 30),
-        call.describe(delay, delayTable[3], 40),
+    const data = yield race([
+      call(delay, delayTable[0], 10),
+      call(delay, delayTable[1], 20),
+      race([
+        call(delay, delayTable[2], 30),
+        call(delay, delayTable[3], 40),
       ]),
     ]);
 
@@ -322,7 +335,7 @@ function* raceProcess() {
     const last = delayTable.pop();
     delayTable.unshift(last);
 
-    yield call.describe(console.log, `${data}`);
+    yield call(console.log, `${data}`);
   }
 }
 
@@ -335,8 +348,8 @@ function* slowPrint(str, interval) {
   let char;
 
   while (char = chars.shift()) {
-    yield putStream.describe(process.stdout, char);
-    yield call.describe(delay, interval);
+    yield putStream(process.stdout, char);
+    yield call(delay, interval);
   }
 }
 
@@ -346,7 +359,7 @@ function* slowPrint(str, interval) {
  */
 function* slowEchoProcess() {
   while (true) {
-    const data = yield takeStream.describe(process.stdin);
+    const data = yield takeStream(process.stdin);
     yield* slowPrint(data.toString(), 50);
   }
 }
@@ -357,13 +370,13 @@ function* slowEchoProcess() {
  */
 function* slowPrintEcho() {
   while (true) {
-    const data = yield takeStream.describe(process.stdin);
+    const data = yield takeStream(process.stdin);
     const chars = data.toString().split('');
     let currentChar;
 
     while (currentChar = chars.shift()) {
-      yield putStream.describe(process.stdout, currentChar);
-      yield call.describe(delay, 50);
+      yield putStream(process.stdout, currentChar);
+      yield call(delay, 50);
     }
   }
 }
@@ -373,8 +386,8 @@ function* slowPrintEcho() {
  * and outputs the data to stdout
  */
 function* slowEchoForkProcess() {
-  yield fork.describe(slowEchoProcess);
-  yield fork.describe(slowEchoProcess);
+  yield fork(slowEchoProcess);
+  yield fork(slowEchoProcess);
 }
 
 /**
@@ -388,16 +401,16 @@ function* parallelProcess() {
     /**
      * Perform two async races in parallel
      */
-    const data = yield parallel.describe([
-      race.describe([
-        call.describe((val) => {
+    const data = yield parallel([
+      race([
+        call((val) => {
           return new Promise((resolve) => {
             setTimeout(() => {
               resolve(10);
             }, delayTable[0]);
           })
         }),
-        call.describe((val) => {
+        call((val) => {
           return new Promise((resolve) => {
             setTimeout(() => {
               resolve(20);
@@ -405,15 +418,15 @@ function* parallelProcess() {
           })
         }),
       ]),
-      race.describe([
-        call.describe((val) => {
+      race([
+        call((val) => {
           return new Promise((resolve) => {
             setTimeout(() => {
               resolve(30);
             }, delayTable[2]);
           })
         }),
-        call.describe((val) => {
+        call((val) => {
           return new Promise((resolve) => {
             setTimeout(() => {
               resolve(40);
@@ -434,7 +447,7 @@ function* parallelProcess() {
      * that handles calling methods
      * with correct this context
      */
-    yield call.describe(console.log.bind(console), `${data}`);
+    yield call(console.log.bind(console), `${data}`);
   }
 }
 

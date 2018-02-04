@@ -63,8 +63,8 @@ function* slowPrint(str, interval) {
   let char;
 
   while (char = chars.shift()) {
-    yield putStream.describe(process.stdout, char);
-    yield call.describe(delay, interval);
+    yield putStream(process.stdout, char);
+    yield call(delay, interval);
   }
 }
 
@@ -74,12 +74,12 @@ function* slowPrint(str, interval) {
  */
 function* slowEchoProcess() {
   while (true) {
-    const data = yield takeStream.describe(process.stdin);
+    const data = yield takeStream(process.stdin);
     /**
      * TODO: Make an example which uses 'callProc'
      * instead of yield*
      */
-    yield callProc.describe(slowPrint, data.toString(), 50);
+    yield callProc(slowPrint, data.toString(), 50);
   }
 }
 

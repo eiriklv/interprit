@@ -92,9 +92,9 @@ const app = function (props) {
 function* incrementCounter() {
   while (true) {
     console.log('- waiting for command in incrementCounter', commandTypes.INCREMENT_COUNTER_COMMAND)
-    yield take.describe(commandTypes.INCREMENT_COUNTER_COMMAND);
+    yield take(commandTypes.INCREMENT_COUNTER_COMMAND);
     console.log('- got command in incrementCounter');
-    yield put.describe({ type: eventTypes.INCREMENT_COUNTER_EVENT });
+    yield put({ type: eventTypes.INCREMENT_COUNTER_EVENT });
     console.log('- done dispatching event in incrementCounter');
   }
 }
@@ -105,9 +105,9 @@ function* incrementCounter() {
 function* decrementCounter() {
   while (true) {
     console.log('- waiting for command in decrementCounter', commandTypes.DECREMENT_COUNTER_COMMAND)
-    yield take.describe(commandTypes.DECREMENT_COUNTER_COMMAND );
+    yield take(commandTypes.DECREMENT_COUNTER_COMMAND );
     console.log('- got command in decrementCounter');
-    yield put.describe({ type: eventTypes.DECREMENT_COUNTER_EVENT });
+    yield put({ type: eventTypes.DECREMENT_COUNTER_EVENT });
     console.log('- done dispatching event in decrementCounter');
   }
 }
@@ -134,7 +134,7 @@ const commands = {
  */
 function* effectsLoop() {
   while (true) {
-    const action = yield take.describe('*');
+    const action = yield take('*');
 
     switch (action.type) {
       case commandTypes.INCREMENT_COUNTER_COMMAND:
@@ -167,9 +167,9 @@ function* renderLoop() {
    * the state accordingly before rendering
    */
   while (true) {
-    yield render.describe(app, commands, state);
+    yield render(app, commands, state);
     console.log('- waiting for any action before next rendering');
-    const action = yield take.describe('*');
+    const action = yield take('*');
     console.log('- got action before rendering', action.type);
     state = updateState(state, action);
     console.log('- done updating state');
@@ -183,10 +183,10 @@ function* actionProducer() {
   let count = 0;
 
   while (true) {
-    yield delay.describe(5000);
+    yield delay(5000);
     console.log(`--------------------- ROUND ${count++} ---------------------`);
     console.log('- dispatching command');
-    yield put.describe({ type: commandTypes.INCREMENT_COUNTER_COMMAND });
+    yield put({ type: commandTypes.INCREMENT_COUNTER_COMMAND });
     console.log('- done dispatching command');
   }
 }
@@ -195,12 +195,12 @@ function* actionProducer() {
  * Main saga
  */
 function* main() {
-  yield parallel.describe([
-    callProc.describe(renderLoop),
-    callProc.describe(effectsLoop),
-    callProc.describe(decrementCounter),
-    callProc.describe(incrementCounter),
-    callProc.describe(actionProducer),
+  yield parallel([
+    callProc(renderLoop),
+    callProc(effectsLoop),
+    callProc(decrementCounter),
+    callProc(incrementCounter),
+    callProc(actionProducer),
   ]);
 }
 

@@ -66,13 +66,13 @@ function logMiddleware(effect) {
 function* subSubProcess({ channel }) {
   try {
     while (true) {
-      yield call.describe(delay, 2000);
-      yield putChannel.describe(channel, 'ping!');
-      const data = yield takeChannel.describe(channel);
-      yield putStream.describe(process.stdout, `(1) event received: ${data}\n`);
+      yield call(delay, 2000);
+      yield putChannel(channel, 'ping!');
+      const data = yield takeChannel(channel);
+      yield putStream(process.stdout, `(1) event received: ${data}\n`);
     }
   } finally {
-    if (yield cancelled.describe()) {
+    if (yield cancelled()) {
       console.log('subsubtask was cancelled');
     } else {
       console.log('subsubtask finished');
@@ -86,10 +86,10 @@ function* subSubProcess({ channel }) {
  */
 function* subProcess() {
   try {
-    const channel = yield call.describe(createChannel);
-    const task1 = yield fork.describe(subSubProcess, { channel });
+    const channel = yield call(createChannel);
+    const task1 = yield fork(subSubProcess, { channel });
   } finally {
-    if (yield cancelled.describe()) {
+    if (yield cancelled()) {
       console.log('subtask was cancelled');
     } else {
       console.log('subtask finished');
@@ -102,12 +102,12 @@ function* subProcess() {
  */
 function* mainProcess() {
   try {
-    const task1 = yield fork.describe(subProcess);
-    yield call.describe(delay, 5000);
-    yield cancel.describe(task1);
-    yield call.describe(delay, 10000);
+    const task1 = yield fork(subProcess);
+    yield call(delay, 5000);
+    yield cancel(task1);
+    yield call(delay, 10000);
   } finally {
-    if (yield cancelled.describe()) {
+    if (yield cancelled()) {
       console.log('main task was cancelled');
     } else {
       console.log('main task finished');

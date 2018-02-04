@@ -64,12 +64,12 @@ function* raceProcess() {
     /**
      * Race two async calls
      */
-    const data = yield race.describe([
-      call.describe(delay, delayTable[0], 10),
-      call.describe(delay, delayTable[1], 20),
-      race.describe([
-        call.describe(delay, delayTable[2], 30),
-        call.describe(delay, delayTable[3], 40),
+    const data = yield race([
+      call(delay, delayTable[0], 10),
+      call(delay, delayTable[1], 20),
+      race([
+        call(delay, delayTable[2], 30),
+        call(delay, delayTable[3], 40),
       ]),
     ]);
 
@@ -79,7 +79,7 @@ function* raceProcess() {
     const last = delayTable.pop();
     delayTable.unshift(last);
 
-    yield call.describe(console.log, `${data}`);
+    yield call(console.log, `${data}`);
   }
 }
 

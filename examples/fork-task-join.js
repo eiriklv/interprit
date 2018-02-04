@@ -67,7 +67,7 @@ function logMiddleware(effect) {
 function* subProcess1() {
   const a = yield 100;
   const b = yield 500;
-  yield call.describe(delay, 5000);
+  yield call(delay, 5000);
   return a + b;
 }
 
@@ -83,11 +83,11 @@ function* subProcess2() {
  * Main process
  */
 function* mainProcess() {
-  const task1 = yield fork.describe(subProcess1);
-  const result1 = yield join.describe(task1);
+  const task1 = yield fork(subProcess1);
+  const result1 = yield join(task1);
 
-  const task2 = yield fork.describe(subProcess2);
-  const result2 = yield join.describe(task2);
+  const task2 = yield fork(subProcess2);
+  const result2 = yield join(task2);
 
   console.log(result1, result2);
 }
