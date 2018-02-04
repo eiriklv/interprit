@@ -629,6 +629,26 @@ module.exports.takeChannel.resolve = function resolveTakeChannel({ channel }, io
 };
 
 /**
+ * Create an effect bundle for
+ * flushing a channel
+ *
+ * Handle an effect spec of the flush-channel
+ * type which resolves flushing messages from channels
+ */
+module.exports.flushChannel = function describeFlushChannel(channel) {
+  return {
+    type: '@@flush-channel',
+    channel,
+  };
+};
+
+module.exports.flushChannel.resolve = function resolveFlushChannel({ channel }, io, engine, parentTask, cb) {
+  channel.flush((messages) => {
+    cb(null, messages);
+  });
+};
+
+/**
  * Create an effect bundle for getting the shared global context
  *
  * Handle an effect spec of the get-context

@@ -57,7 +57,7 @@ const channel = module.exports.channel = function channel(buffer) {
         messages.push(buffer.take())
       }
 
-      if (isClosed && !messages) {
+      if (isClosed && !messages.length) {
         callback(END);
       } else {
         callback(messages);
@@ -87,6 +87,7 @@ const eventChannel = module.exports.eventChannel = function eventChannel(subscri
     if (isFunction(unsubscribe)) {
       unsubscribe();
     }
+
     chan.close();
   }
 
@@ -95,6 +96,7 @@ const eventChannel = module.exports.eventChannel = function eventChannel(subscri
       isClosed = true;
       return close();
     }
+    
     chan.put(input);
   });
 
