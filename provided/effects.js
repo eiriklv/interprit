@@ -303,12 +303,12 @@ module.exports.race.resolve = function resolveRace({ effects }, io, { resolveEff
  * calls and function calls that returns a promise
  */
 module.exports.call = function describeCall(func, ...args) {
-    return {
-      type: '@@call',
-      func,
-      args,
-    };
+  return {
+    type: '@@call',
+    func,
+    args,
   };
+};
 
 module.exports.call.resolve = function resolveCall({ func, args }, io, engine, parentTask, cb) {
   let result;
