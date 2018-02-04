@@ -14,7 +14,7 @@ const {
  * an application to the console (just logging for now)
  *
  * NOTE: This just logs the state at the moment
- * TODO: Make this render a React app into the DOM
+ * TODO: Make this render a React app into the DOM by passing a render function "app"
  */
 module.exports.render = function describeRender(app, commands, state) {
   return {
