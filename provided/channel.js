@@ -4,14 +4,24 @@
 const { sliding } = require('./buffer');
 
 /**
+ * Import utils
+ */
+const { isFunction, once } = require('../utils');
+
+/**
  * End message symbol
  */
 const END = module.exports.END = Symbol('@@channel_end');
 
 /**
+ * End message check
+ */
+const isEndOfChannel = module.exports.isEndOfChannel = (input) => input === END;
+
+/**
  * Channel implementation
  */
-module.exports.channel = function channel(buffer) {
+const channel = module.exports.channel = function channel(buffer) {
   buffer = buffer || sliding(10);
 
   let isClosed = false;
@@ -65,6 +75,42 @@ module.exports.channel = function channel(buffer) {
 }
 
 /**
- * TODO: Create an implementation of an event(emitter) channel
+ * Event emitter / subscriber channel implementation
  */
-const eventChannel = module.exports.eventChannel = function eventChannel() {}
+const eventChannel = module.exports.eventChannel = function eventChannel(subscriber, buffer) {
+  let isClosed = false;
+  let unsubscribe;
+
+  const chan = channel(buffer);
+
+  const close = () => {
+    if (isFunction(unsubscribe)) {
+      unsubscribe();
+    }
+    chan.close();
+  }
+
+  unsubscribe = subscriber((input) => {
+    if (isEndOfChannel(input)) {
+      isClosed = true;
+      return close();
+    }
+    chan.put(input);
+  });
+
+  if (!isFunction(unsubscribe)) {
+    throw new Error('eventChannel: subscribe should return a function to unsubscribe');
+  }
+
+  unsubscribe = once(unsubscribe);
+
+  if (isClosed) {
+    unsubscribe();
+  }
+
+  return {
+    take: chan.take,
+    flush: chan.flush,
+    close,
+  };
+}

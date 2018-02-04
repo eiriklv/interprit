@@ -30,6 +30,19 @@ function delay(ms, val) {
   });
 }
 
+function once(func) {
+  let called = false;
+
+  return () => {
+    if (called) {
+      return;
+    } else {
+      called = true;
+      func();
+    }
+  };
+}
+
 function safePromise(promise) {
   return promise
   .then(result => [null, result])
@@ -37,6 +50,7 @@ function safePromise(promise) {
 }
 
 module.exports = {
+  once,
   isPromise,
   isFunction,
   isObject,
