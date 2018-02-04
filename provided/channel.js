@@ -75,6 +75,65 @@ const channel = module.exports.channel = function channel(buffer) {
 }
 
 /**
+ * Channel implementation
+ */
+const syncChannel = module.exports.syncChannel = function syncChannel() {
+  let isClosed = false;
+  let puters = [];
+  let takers = [];
+
+  return {
+    put(msg, callback) {
+      if (isClosed) {
+        return callback(END);
+      }
+
+      if (takers.length) {
+        const taker = takers.shift();
+        taker(msg);
+        callback();
+      } else {
+        puters.push({ msg, ack: callback });
+      }
+    },
+    take(callback) {
+      if (puters.length) {
+        const { msg, ack } = puters.shift();
+        callback(msg);
+        ack();
+      } else if (!puters.length && isClosed) {
+        callback(END);
+      } else {
+        takers.push(callback);
+      }
+    },
+    flush(callback) {
+      const messages = []
+
+      while (puters.length) {
+        const { msg, ack } = puters.shift();
+        ack();
+        messages.push(msg);
+      }
+
+      if (isClosed && !messages.length) {
+        callback(END);
+      } else {
+        callback(messages);
+      }
+    },
+    close() {
+      isClosed = true;
+
+      while (takers.length) {
+        const taker = takers.shift();
+        taker(END);
+      }
+    }
+  }
+}
+
+/**
  * Event emitter / subscriber channel implementation
  */
 const eventChannel = module.exports.eventChannel = function eventChannel(subscriber, buffer = none()) {
@@ -96,7 +155,7 @@ const eventChannel = module.exports.eventChannel = function eventChannel(subscri
       isClosed = true;
       return close();
     }
-    
+
     chan.put(input);
   });
 

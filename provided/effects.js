@@ -649,6 +649,65 @@ module.exports.flushChannel.resolve = function resolveFlushChannel({ channel }, 
 };
 
 /**
+ * Create an effect bundle for putting
+ * a message into a synchronous channel
+ *
+ * Handle an effect spec of the put-sync-channel
+ * type which resolves putting messages into channels
+ */
+module.exports.putSyncChannel = function describePutSyncChannel(channel, message) {
+  return {
+    type: '@@put-sync-channel',
+    channel,
+    message,
+  };
+};
+
+module.exports.putSyncChannel.resolve = function resolvePutSyncChannel({ channel, message }, io, engine, parentTask, cb) {
+  channel.put(message, (msg) => cb(null, msg));
+};
+
+/**
+ * Create an effect bundle for taking
+ * a message from a sync channel
+ *
+ * Handle an effect spec of the take-sync-channel
+ * type which resolves taking messages from synchronous channels
+ */
+module.exports.takeSyncChannel = function describeTakeSyncChannel(channel) {
+  return {
+    type: '@@take-sync-channel',
+    channel,
+  };
+};
+
+module.exports.takeSyncChannel.resolve = function resolveTakeSyncChannel({ channel }, io, engine, parentTask, cb) {
+  channel.take((msg) => {
+    cb(null, msg);
+  });
+};
+
+/**
+ * Create an effect bundle for
+ * flushing a synchronous channel
+ *
+ * Handle an effect spec of the flush-sync-channel
+ * type which resolves flushing messages from synchronous channels
+ */
+module.exports.flushSyncChannel = function describeFlushSyncChannel(channel) {
+  return {
+    type: '@@flush-sync-channel',
+    channel,
+  };
+};
+
+module.exports.flushSyncChannel.resolve = function resolveFlushSyncChannel({ channel }, io, engine, parentTask, cb) {
+  channel.flush((messages) => {
+    cb(null, messages);
+  });
+};
+
+/**
  * Create an effect bundle for getting the shared global context
  *
  * Handle an effect spec of the get-context
