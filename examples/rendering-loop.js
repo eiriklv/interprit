@@ -11,28 +11,28 @@ const {
   put,
   take,
   takeStream,
-} = require('../provided/effects');
+} = require('../lib/effects');
 
 /**
- * Import runtime creator
+ * Import interpreter creator
  */
-const createRuntime = require('../lib/runtime');
+const createInterpreter = require('../lib/interpreter');
 
 /**
  * Import IO creator
  */
-const { createIO } = require('../provided/io');
+const { createIO } = require('../lib/io');
 
 /**
  * Create an IO interface to pass to
- * the runtime for handling take/put
+ * the interpreter for handling take/put
  */
 const io = createIO();
 
 /**
- * Create a runtime based on the effects resolvers and IO chosen
+ * Create an interpreter based on the effects resolvers and IO chosen
  */
-const runtime = createRuntime([], {
+const interpreter = createInterpreter([], {
   delay,
   render,
   callProc,
@@ -207,7 +207,7 @@ function* main() {
 /**
  * Run the main process
  */
-runtime(main);
+interpreter(main);
 
 /**
  * Thoughts:

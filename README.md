@@ -5,21 +5,21 @@ edge-effects
 
 __NOTE:__ Mostly for educative and exploratory purposes for now.
 
-Pluggable runtime effects engine (think redux-saga, except you define your own set of effects and higher order effects).
+Pluggable effects interpreter engine (think redux-saga, except you define your own set of effects and higher order effects).
 
 See [this talk](https://www.youtube.com/watch?v=TLm-i5sVlNM) for some of the motivations of building this (and pushing side effects to the edge).
 
 ## Usage
 
-### Creating an effects runtime/interpreter:
+### Creating an effects interpreter/runtime:
 
 ```js
-const createRuntime = require('edge-effects');
+const createInterpreter = require('edge-effects');
 
 /**
- * Creating a runtime from middleware, effects and io
+ * Creating an interpreter from middleware, effects and io
  */
-const runtime = createRuntime(middleware = [], effects = {}, io = {});
+const interpreter = createInterpreter(middleware = [], effects = {}, io = {});
 
 /**
  * Create a final handler that will be called when your process has completed
@@ -42,9 +42,9 @@ const args = { ... };
 const process = function* () { ... };
 
 /**
- * Run your process with the runtime
+ * Run your process with the interpreter
  */
-runtime(process, context, finalHandler, args);
+interpreter(process, context, finalHandler, args);
 ```
 
 ### IO:
@@ -65,7 +65,7 @@ const io = {
 
 ### Effects (descriptors + resolvers):
 
-Creating a set of effects you want your runtime to be able to resolve/handle.
+Creating a set of effects you want your interpreter to be able to resolve/handle.
 
 ```js
 /**
@@ -177,7 +177,7 @@ const effects = {
 const {
   createStore,
   applyMiddleware,
-} = require('../provided/redux');
+} = require('../lib/redux');
 
 /**
  * Redux middleware
@@ -185,7 +185,7 @@ const {
 const {
   addDispatchSubscriptionToStore,
   addLoggingToStore
-} = require('../provided/middleware');
+} = require('../lib/middleware');
 
 /**
  * Event emitter
@@ -208,19 +208,19 @@ const {
   takeStream,
   putEvent,
   takeEvent,
-} = require('../provided/effects');
+} = require('../lib/effects');
 
 /**
  * Utils
  */
 const {
   delay,
-} = require('../utils');
+} = require('../lib/utils');
 
 /**
- * Runtime
+ * Interpreter
  */
-const createRuntime = require('../lib/runtime');
+const createInterpreter = require('../lib/interpreter');
 
 /**
  * Middleware to add logging of effects
@@ -472,7 +472,7 @@ function reducer(state = {}, action) {
 }
 
 /**
- * Run the program using our runtime
+ * Run the program using our interpreter
  */
 function application () {
   /**
@@ -505,7 +505,7 @@ function application () {
 
   /**
    * Create the IO interface to pass to
-   * the runtime for handling takeAction/putAction/select
+   * the interpreter for handling takeAction/putAction/select
    */
   const io = {
     dispatch: store.dispatch,
@@ -534,9 +534,9 @@ function application () {
   const socket = new EventEmitter();
 
   /**
-   * Create a runtime
+   * Create an interpreter
    */
-  const runtime = createRuntime([logMiddleware], {
+  const interpreter = createInterpreter([logMiddleware], {
     call,
     callProc,
     cps,
@@ -588,7 +588,7 @@ function application () {
    * Run all the processes
    */
   processes.forEach((proc) => {
-    runtime(proc, context, finalHandler, args);
+    interpreter(proc, context, finalHandler, args);
   });
 }
 

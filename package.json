@@ -1,7 +1,7 @@
 {
   "name": "edge-effects",
   "version": "2.0.0",
-  "description": "Pluggable runtime effects engine",
+  "description": "Pluggable interpreter effects engine",
   "main": "index.js",
   "directories": {
     "example": "examples",

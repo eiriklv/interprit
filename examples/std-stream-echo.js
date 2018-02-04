@@ -6,7 +6,7 @@
 const {
   createStore,
   applyMiddleware,
-} = require('../provided/redux');
+} = require('../lib/redux');
 
 /**
  * Redux middleware
@@ -14,7 +14,7 @@ const {
 const {
   addDispatchSubscriptionToStore,
   addLoggingToStore,
-} = require('../provided/middleware');
+} = require('../lib/middleware');
 
 /**
  * Effects
@@ -31,12 +31,12 @@ const {
   takeStream,
   putEvent,
   takeEvent,
-} = require('../provided/effects');
+} = require('../lib/effects');
 
 /**
- * Runtime
+ * Interpreter
  */
-const createRuntime = require('../lib/runtime');
+const createInterpreter = require('../lib/interpreter');
 
 /**
  * Middleware to add logging of effects
@@ -79,7 +79,7 @@ function reducer(state = {}, action) {
 }
 
 /**
- * Run the program using our runtime
+ * Run the program using our interpreter
  */
 function application () {
   /**
@@ -112,7 +112,7 @@ function application () {
 
   /**
    * Create the IO interface to pass to
-   * the runtime for handling takeAction/putAction/select
+   * the interpreter for handling takeAction/putAction/select
    */
   const io = {
     dispatch: store.dispatch,
@@ -121,9 +121,9 @@ function application () {
   }
 
   /**
-   * Create a runtime
+   * Create an interpreter
    */
-  const runtime = createRuntime([logMiddleware], {
+  const interpreter = createInterpreter([logMiddleware], {
     call,
     callProc,
     cps,
@@ -158,7 +158,7 @@ function application () {
    * Run all the processes
    */
   processes.forEach((proc) => {
-    runtime(proc, context, finalHandler, args);
+    interpreter(proc, context, finalHandler, args);
   });
 }
 
