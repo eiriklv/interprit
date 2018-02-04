@@ -1,7 +1,7 @@
 /**
  * Import dependencies
  */
-const { sliding } = require('./buffer');
+const { sliding, none } = require('./buffer');
 
 /**
  * Import utils
@@ -9,12 +9,12 @@ const { sliding } = require('./buffer');
 const { isFunction, once } = require('../utils');
 
 /**
- * End message symbol
+ * End message symbol for channels
  */
 const END = module.exports.END = Symbol('@@channel_end');
 
 /**
- * End message check
+ * End message check for channels
  */
 const isEndOfChannel = module.exports.isEndOfChannel = (input) => input === END;
 
@@ -77,7 +77,7 @@ const channel = module.exports.channel = function channel(buffer) {
 /**
  * Event emitter / subscriber channel implementation
  */
-const eventChannel = module.exports.eventChannel = function eventChannel(subscriber, buffer) {
+const eventChannel = module.exports.eventChannel = function eventChannel(subscriber, buffer = none()) {
   let isClosed = false;
   let unsubscribe;
 
