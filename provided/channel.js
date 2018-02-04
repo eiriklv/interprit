@@ -133,6 +133,11 @@ const syncChannel = module.exports.syncChannel = function syncChannel() {
         const taker = takers.shift();
         taker(END);
       }
+
+      while (puters.length) {
+        const { ack } = puters.shift();
+        ack(END);
+      }
     }
   }
 }
