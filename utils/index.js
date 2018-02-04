@@ -1,4 +1,4 @@
-function isPromise(obj) {
+const isPromise = module.exports.isPromise = function isPromise(obj) {
   return (
     isObject(obj) &&
     'then' in obj &&
@@ -6,15 +6,15 @@ function isPromise(obj) {
   );
 }
 
-function isFunction(obj) {
+const isFunction = module.exports.isFunction = function isFunction(obj) {
   return typeof obj === 'function';
 }
 
-function isObject(obj) {
+const isObject = module.exports.isObject = function isObject(obj) {
   return typeof obj === 'object' && obj instanceof Object;
 }
 
-function isSpecObject(obj) {
+const isSpecObject = module.exports.isSpecObject = function isSpecObject(obj) {
   return (
     isObject(obj) &&
     typeof obj.type === 'string' &&
@@ -22,7 +22,7 @@ function isSpecObject(obj) {
   );
 }
 
-function delay(ms, val) {
+const delay = module.exports.delay = function delay(ms, val) {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(val);
@@ -30,7 +30,7 @@ function delay(ms, val) {
   });
 }
 
-function once(func) {
+const once = module.exports.once = function once(func) {
   let called = false;
 
   return () => {
@@ -43,18 +43,8 @@ function once(func) {
   };
 }
 
-function safePromise(promise) {
+const safePromise = module.exports.safePromise = function safePromise(promise) {
   return promise
   .then(result => [null, result])
   .catch(error => [error, null]);
 }
-
-module.exports = {
-  once,
-  isPromise,
-  isFunction,
-  isObject,
-  isSpecObject,
-  delay,
-  safePromise,
-};
