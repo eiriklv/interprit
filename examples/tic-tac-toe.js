@@ -273,15 +273,16 @@ function* gameLoop() {
 
   /**
    * Game logic / control flow
+   * NOTE: We'll continue playing until someone wins or the game board is filled
    */
   while (!isFinished(game)) {
     /**
-     * Render the board
+     * Render the game board
      */
     yield callProc(renderGameBoard, game);
 
     /**
-     * Get the correct player
+     * Get the next player
      */
     const nextPlayer = getNextPlayer(game);
 
@@ -294,6 +295,10 @@ function* gameLoop() {
      * Tell the player to choose a tile index and wait for input
      */
     yield putStream(process.stdout, `Player ${nextPlayer} - choose a tile by index\n`);
+
+    /**
+     * Get the tile chosen by the player from the input stream
+     */
     const chosenTileIndex = +(yield takeStream(process.stdin));
 
     /**
@@ -305,7 +310,7 @@ function* gameLoop() {
     }
 
     /**
-     * Update the game state
+     * Update the game state based on the tile chosen
      */
     game = fillTile({
       player: nextPlayer,
@@ -314,7 +319,7 @@ function* gameLoop() {
   }
 
   /**
-   * Render the end board
+   * Render the end game board
    */
   yield callProc(renderGameBoard, game);
 
@@ -322,10 +327,14 @@ function* gameLoop() {
    * Get the winner
    */
   const winner = getWinner(game);
+
+  /**
+   * Set the ending output text based on the outcome
+   */
   const endingText = winner ? `The winner was Player ${winner}` : `No winner!`;
 
   /**
-   * Render the winner
+   * Render the ending output text
    */
   yield putStream(process.stdout, endingText + '\n\n');
 }
