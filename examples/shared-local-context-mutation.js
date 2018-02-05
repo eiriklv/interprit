@@ -159,7 +159,7 @@ function application () {
   /**
    * Create an interpreter
    */
-  const interpreter = createInterpreter([logMiddleware], {
+  const interpreter = createInterpreter({
     call,
     fork,
     setLocalContext,

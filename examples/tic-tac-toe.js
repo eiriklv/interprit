@@ -1,6 +1,11 @@
 'use strict';
 
 /**
+ * Import dependencies
+ */
+const util = require('util');
+
+/**
  * Effects
  */
 const {
@@ -31,9 +36,14 @@ const { createIO } = require('../lib/io');
 const io = createIO();
 
 /**
+ * Create debug context object
+ */
+const debugContext = {};
+
+/**
  * Create an interpreter based on the effects resolvers and IO chosen
  */
-const interpreter = createInterpreter([], {
+const interpreter = createInterpreter({
   delay,
   render,
   callProc,
@@ -42,7 +52,18 @@ const interpreter = createInterpreter([], {
   take,
   takeStream,
   putStream,
-}, io);
+}, io, [], {
+  effectTriggered: (effect, task) => console.log('effect triggered', effect, task),
+  effectResolved: (effect, result) => console.log('effect resolved', effect, result),
+  effectRejected: (effect, reason) => console.log('effect rejected', effect, reason),
+  effectAttached: (effect, task) => console.log('effect attached', effect, task),
+  effectDetached: (effect, task) => console.log('effect detached', effect, task),
+  taskCreated: (task) => console.log('task created', task),
+  taskSucceeded: (task, result) => console.log('task succeeded', task, result),
+  taskFailed: (task, reason) => console.log('task failed', task, reason),
+  taskAttached: (parentTask, task) => console.log('task attached', parentTask, task),
+  taskDetached: (parentTask, task) => console.log('task detached', parentTask, task),
+});
 
 /**
  * Function to transpose a 2D array (M x N dimensional)
@@ -351,6 +372,11 @@ function* main() {
 /**
  * Run the main process
  */
-interpreter(main).done
+const mainTask = interpreter(main);
+
+/**
+ * Handle errors and completion
+ */
+mainTask.done
 .then(() => console.log('program done'))
 .catch((error) => console.error('program crashed', error));

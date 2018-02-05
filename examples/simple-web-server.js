@@ -42,7 +42,7 @@ const io = createIO();
 /**
  * Create an interpreter based on the effects resolvers and IO chosen
  */
-const interpreter = createInterpreter([], {
+const interpreter = createInterpreter({
   delay,
   apply,
   call,
