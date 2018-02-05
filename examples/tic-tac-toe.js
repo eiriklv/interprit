@@ -52,18 +52,7 @@ const interpreter = createInterpreter({
   take,
   takeStream,
   putStream,
-}, io, [], {
-  effectTriggered: (effect, task) => console.log('effect triggered', effect, task),
-  effectResolved: (effect, result) => console.log('effect resolved', effect, result),
-  effectRejected: (effect, reason) => console.log('effect rejected', effect, reason),
-  effectAttached: (effect, task) => console.log('effect attached', effect, task),
-  effectDetached: (effect, task) => console.log('effect detached', effect, task),
-  taskCreated: (task) => console.log('task created', task),
-  taskSucceeded: (task, result) => console.log('task succeeded', task, result),
-  taskFailed: (task, reason) => console.log('task failed', task, reason),
-  taskAttached: (parentTask, task) => console.log('task attached', parentTask, task),
-  taskDetached: (parentTask, task) => console.log('task detached', parentTask, task),
-});
+}, io);
 
 /**
  * Function to transpose a 2D array (M x N dimensional)
