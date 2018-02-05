@@ -160,7 +160,7 @@ function application () {
     takeStream,
     putEvent,
     takeEvent,
-  }, io);
+  }, io, [], console.log);
 
   /**
    * Gather all the processes
