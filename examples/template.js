@@ -31,8 +31,8 @@ const {
   race,
   fork,
   parallel,
-  putAction,
-  takeAction,
+  put,
+  take,
   putStream,
   takeStream,
   putEvent,
@@ -67,9 +67,9 @@ function logMiddleware(effect) {
  */
 function* processOne() {
   while (true) {
-    yield takeAction('PING');
+    yield take('PING');
     yield call(delay, 2000);
-    yield putAction({ type: 'PONG' });
+    yield put({ type: 'PONG' });
   }
 }
 
@@ -81,8 +81,8 @@ function* processOne() {
  */
 function* processTwo() {
   while (true) {
-    yield putAction({ type: 'PING' });
-    yield takeAction('PONG');
+    yield put({ type: 'PING' });
+    yield take('PONG');
     yield call(delay, 2000);
   }
 }
@@ -305,7 +305,7 @@ function reducer(state = {}, action) {
  */
 function application () {
   /**
-   * Create instance of takeActionsMiddleware
+   * Create instance of takesMiddleware
    */
   const subscribeToDispatchMiddleware = addDispatchSubscriptionToStore({});
 
@@ -334,7 +334,7 @@ function application () {
 
   /**
    * Create the IO interface to pass to
-   * the interpreter for handling takeAction/putAction/select
+   * the interpreter for handling take/put/select
    */
   const io = {
     dispatch: store.dispatch,
@@ -371,8 +371,8 @@ function application () {
     race,
     fork,
     parallel,
-    putAction,
-    takeAction,
+    put,
+    take,
     putStream,
     takeStream,
     putEvent,

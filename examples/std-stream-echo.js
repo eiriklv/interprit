@@ -25,8 +25,8 @@ const {
   cps,
   race,
   parallel,
-  putAction,
-  takeAction,
+  put,
+  take,
   putStream,
   takeStream,
   putEvent,
@@ -83,7 +83,7 @@ function reducer(state = {}, action) {
  */
 function application () {
   /**
-   * Create instance of takeActionsMiddleware
+   * Create instance of takesMiddleware
    */
   const subscribeToDispatchMiddleware = addDispatchSubscriptionToStore({});
 
@@ -112,7 +112,7 @@ function application () {
 
   /**
    * Create the IO interface to pass to
-   * the interpreter for handling takeAction/putAction/select
+   * the interpreter for handling take/put/select
    */
   const io = {
     dispatch: store.dispatch,
@@ -129,8 +129,8 @@ function application () {
     cps,
     race,
     parallel,
-    putAction,
-    takeAction,
+    put,
+    take,
     putStream,
     takeStream,
     putEvent,
