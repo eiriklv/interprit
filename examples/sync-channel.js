@@ -1,6 +1,12 @@
 'use strict';
 
 /**
+ * Import dependencies
+ */
+const fs = require('fs');
+const uuid = require('uuid');
+
+/**
  * Redux
  */
 const {
@@ -160,6 +166,12 @@ function application () {
   }
 
   /**
+   * Create unique filename
+   */
+  const filename = `../logs/${uuid.v4()}-log.json`;
+  const fileStream = fs.createWriteStream(filename, { flags:'a' });
+
+  /**
    * Create an interpreter
    */
   const interpreter = createInterpreter({
@@ -172,7 +184,9 @@ function application () {
     takeStream,
     putSyncChannel,
     takeSyncChannel,
-  }, io);
+  }, io, [], (event) => {
+    fileStream.write(`${JSON.stringify(event)}\n`);
+  });
 
   /**
    * Gather all the processes
