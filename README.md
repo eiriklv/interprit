@@ -1,11 +1,11 @@
-edge-effects
-============
+interprit
+=========
 
-[![npm version](https://badge.fury.io/js/edge-effects.svg)](https://badge.fury.io/js/edge-effects)
+[![npm version](https://badge.fury.io/js/interprit.svg)](https://badge.fury.io/js/interprit)
 
 __NOTE:__ Mostly for educative and exploratory purposes for now.
 
-Pluggable effects interpreter engine (think redux-saga, except you define your own set of effects and higher order effects).
+Pluggable interpreter and effects engine (think redux-saga, except you define your own set of effects and higher order effects).
 
 See [this talk](https://www.youtube.com/watch?v=TLm-i5sVlNM) for some of the motivations of building this (and pushing side effects to the edge).
 
@@ -14,7 +14,7 @@ See [this talk](https://www.youtube.com/watch?v=TLm-i5sVlNM) for some of the mot
 ### Creating an effects interpreter/runtime:
 
 ```js
-const createInterpreter = require('edge-effects');
+const createInterpreter = require('interprit');
 
 /**
  * Creating an interpreter from middleware, effects and io
