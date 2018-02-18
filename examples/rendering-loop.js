@@ -81,9 +81,8 @@ const updateState = (state = initialState, action) => {
 /**
  * UI / View application (Something declarative -  DIY React?)
  */
-const app = function (props) {
-  const { commands, state } = props;
-  return state;
+const app = function (state, commands) {
+  return { state, commands };
 }
 
 /**

@@ -84,7 +84,7 @@ const updateState = (state = initialState, action) => {
  * UI / View application (Hyperapp)
  */
 const app = function (state, commands) {
-  console.log(state);
+  console.log({ state, commands });
 }
 
 /**

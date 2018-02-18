@@ -83,9 +83,8 @@ const updateState = (state = initialState, action) => {
 /**
  * UI / View application (Something declarative -  DIY React?)
  */
-const app = function (props) {
-  const { commands, state } = props;
-  return state;
+const app = function (state, commands) {
+  return { state, commands };
 }
 
 /**
@@ -197,7 +196,7 @@ function* renderLoop() {
    * the state accordingly before rendering
    */
   while (true) {
-    yield render(app, commands, state);
+    yield render(app, state, commands);
     const action = yield take('*');
     state = updateState(state, action);
   }
