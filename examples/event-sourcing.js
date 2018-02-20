@@ -189,7 +189,7 @@ function getCommandHandlerByType(type) {
  * UI / View application (Hyperapp)
  */
 const app = function (state, commands) {
-  console.log({ state, commands });
+  return { state, commands };
 }
 
 /**
