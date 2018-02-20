@@ -1,9 +1,15 @@
 'use strict';
 
 /**
+ * Depedencies
+ */
+const uuid = require('uuid');
+
+/**
  * Effects
  */
 const {
+  call,
   delay,
   render,
   callProc,
@@ -12,6 +18,8 @@ const {
   take,
   takeStream,
   putStream,
+  actionChannel,
+  takeChannel,
 } = require('../lib/effects');
 
 /**
@@ -34,6 +42,7 @@ const io = createIO();
  * Create an interpreter based on the effects resolvers and IO chosen
  */
 const interpreter = createInterpreter({
+  call,
   delay,
   render,
   callProc,
@@ -42,6 +51,8 @@ const interpreter = createInterpreter({
   take,
   takeStream,
   putStream,
+  actionChannel,
+  takeChannel,
 }, io);
 
 /**
@@ -64,16 +75,16 @@ const eventTypes = {
  * Command creators
  */
 const commandCreators = {
-  incrementCounter: () => ({ type: commandTypes.INCREMENT_COUNTER_COMMAND }),
-  decrementCounter: () => ({ type: commandTypes.DECREMENT_COUNTER_COMMAND }),
+  incrementCounter: () => ({ id: uuid.v4(), type: commandTypes.INCREMENT_COUNTER_COMMAND }),
+  decrementCounter: () => ({ id: uuid.v4(), type: commandTypes.DECREMENT_COUNTER_COMMAND }),
 }
 
 /**
  * Event creators
  */
 const eventCreators = {
-  incrementCounter: () => ({ type: eventTypes.INCREMENT_COUNTER_EVENT }),
-  decrementCounter: () => ({ type: eventTypes.DECREMENT_COUNTER_EVENT }),
+  incrementCounter: () => ({ id: uuid.v4(), type: eventTypes.INCREMENT_COUNTER_EVENT }),
+  decrementCounter: () => ({ id: uuid.v4(), type: eventTypes.DECREMENT_COUNTER_EVENT }),
 }
 
 /**
@@ -108,16 +119,16 @@ const updateState = (state = initialState, event) => {
 /**
  * Effect calculation logic
  */
-function* calculateEffects(event, state) {
+function calculateEffects(event, state) {
   switch (event.type) {
     case eventTypes.INCREMENT_COUNTER_EVENT:
     return [
-      call([console, console.log], 'side effect from increment command')
+      call(console.log, 'side effect from increment command'),
     ];
 
     case eventTypes.DECREMENT_COUNTER_EVENT:
     return [
-      call([console, console.log], 'side effect from increment command')
+      call(console.log, 'side effect from decrement command'),
     ];
 
     default:
@@ -133,14 +144,37 @@ function* calculateEffects(event, state) {
  */
 const commandHandlers = {
   *[commandTypes.INCREMENT_COUNTER_COMMAND](command, state) {
-    return [eventCreators.incrementCounter()];
+    /**
+     * TODO: Check invariants and rules against state
+     */
+
+    /**
+     * Create resulting events
+     */
+    const events = [eventCreators.incrementCounter()];
+
+    /**
+     * Return resulting event(s)
+     */
+    return [null, events];
   },
   *[commandTypes.DECREMENT_COUNTER_COMMAND](command, state) {
-    return [eventCreators.decrementCounter()];
+    /**
+     * TODO: Check invariants and rules against state
+     */
+
+    /**
+     * Create resulting events
+     */
+    const events = [eventCreators.decrementCounter()];
+
+    /**
+     * Return resulting event(s)
+     */
+    return [null, events];
   },
   *default({ type }) {
-    yield call([console, console.log], `Unrecognized command of type ${type} supplied - Did you forget to add it to the handler map?`);
-    return [];
+    return [new Error(`Unrecognized command of type ${type} supplied - Did you forget to add it to the handler map?`)];
   },
 };
 
@@ -159,35 +193,59 @@ const app = function (state, commands) {
 }
 
 /**
- * Main loop
+ * Input loop
+ *
+ * NOTE: This is where you listen to all types of events which
+ * can trigger effects in your system (listening to the outside world)
  */
-function* main() {
+function* inputLoop() {
+  /**
+   * Listen to external events and then trigger puts when something happens
+   */
+  while (true) {
+    const data = yield takeStream(process.stdin);
+    const command = data.toString().trim();
+
+    switch (command) {
+      case 'help':
+      yield putStream(process.stdout, `> the available commands are \n- increment\n- decrement\n`);
+      break;
+
+      case 'increment':
+      yield put({ type: commandTypes.INCREMENT_COUNTER_COMMAND });
+      break;
+
+      case 'decrement':
+      yield put({ type: commandTypes.DECREMENT_COUNTER_COMMAND });
+      break;
+
+      default:
+      yield putStream(process.stdout, `invalid command input => ${command || 'blank'}\n`);
+      break;
+    }
+  }
+}
+
+/**
+ * Event loop
+ */
+function* eventLoop() {
   /**
    * Initial state
    */
-  let state = {
-    counter: 0,
-  };
+  let state = { counter: 0 };
 
   /**
-   * State log
-   */
-  let stateLog = [state];
-
-  /**
-   * Command history
+   * Logs
    */
   let commandLog = [];
-
-  /**
-   * Event history
-   */
   let eventLog = [];
+  let effectLog = [];
 
   /**
-   * Effect history
+   * Create an action channel
    */
-  let effectLog = [];
+  const commandChannel = yield actionChannel('*');
 
   /**
    * Listen for actions and update
@@ -202,12 +260,7 @@ function* main() {
     /**
      * Wait for the next command
      */
-    const command = yield take('*');
-
-    /**
-     * Store the command
-     */
-    commandLog.push(command);
+    const command = yield takeChannel(commandChannel);
 
     /**
      * Get the appropriate command handler
@@ -217,44 +270,78 @@ function* main() {
     /**
      * Handle the command and capture the generated events
      */
-    const events = yield callProc(handleCommand, command, state);
+    const [error, events] = yield callProc(handleCommand, command, state);
 
     /**
-     * Store the events
+     * Store the command and references to the generated events
      */
-    eventLog.push(...events);
+    commandLog.push({
+      ...command,
+      state: error ? 'rejected' : 'fulfilled',
+      children: error ? [] : events.map(({ id }) => id),
+    });
+
+    /**
+     * If the command could not be processed
+     */
+    if (error) {
+      yield call(console.log, `Command ${command.type} failed with reason: ${error.message}`);
+      continue;
+    }
+
+    /**
+     * Store / commit the events
+     *
+     * NOTE: This is where you would store event in a persistent database or push it to a queue
+     */
+    eventLog.push(...events.map((event) => ({
+      ...event,
+      parent: command.id,
+    })));
 
     /**
      * Calculate the resulting effects from the event and current state
      */
-    let effects = [];
     for (let event of events) {
-      let resultingEffects = yield callProc(calculateEffects, event, state);
-      effects = [...effects, resultingEffects];
-    }
+      /**
+       * Calculate effects for event
+       */
+      let effects = calculateEffects(event, state);
 
-    /**
-     * Store the effects
-     */
-    effectLog.push(...effects);
+      /**
+       * Store / commit the effects
+       * NOTE: This is where you would push effects into a queue for execution
+       */
+      effectLog.push(...effects.map((effect) => ({
+        ...effect,
+        parent: event.id,
+      })));
+
+      /**
+       * Perform the resulting effects
+       */
+      for (let effect of effects) {
+        yield effect;
+      }
+    }
 
     /**
      * Update the state based on the event
      */
-    state = updateState(state, event);
-
-    /**
-     * Store the state
-     */
-    stateLog.push(state);
-
-    /**
-     * Perform the resulting effects
-     */
-    for (let effect of effects) {
-      yield effect;
+    for (let event of events) {
+      state = updateState(state, event);
     }
   }
+}
+
+/**
+ * Main process
+ */
+function* main() {
+  yield parallel([
+    callProc(inputLoop),
+    callProc(eventLoop),
+  ]);
 }
 
 /**
