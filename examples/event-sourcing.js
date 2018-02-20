@@ -118,17 +118,22 @@ const updateState = (state = initialState, event) => {
 
 /**
  * Effect calculation logic
+ * TODO: Create effect calculation handler map + selector
  */
 function calculateEffects(event, state) {
   switch (event.type) {
     case eventTypes.INCREMENT_COUNTER_EVENT:
-    return [
-      call(console.log, 'side effect from increment command'),
+    return state.counter === 0 ? [
+      call(console.log, 'went positive!'),
+    ] : [
+      call(console.log, 'incremented counter!'),
     ];
 
     case eventTypes.DECREMENT_COUNTER_EVENT:
-    return [
-      call(console.log, 'side effect from decrement command'),
+    return state.counter === 0 ? [
+      call(console.log, 'went negative!'),
+    ] : [
+      call(console.log, 'decremented counter!'),
     ];
 
     default:
@@ -147,6 +152,9 @@ const commandHandlers = {
     /**
      * TODO: Check invariants and rules against state
      */
+    if (state.counter >= 5) {
+      return [new Error('Cannot increment to more than 5')];
+    }
 
     /**
      * Create resulting events
@@ -162,6 +170,9 @@ const commandHandlers = {
     /**
      * TODO: Check invariants and rules against state
      */
+    if (state.counter <= -5) {
+      return [new Error('Cannot decrement to more than -5')];
+    }
 
     /**
      * Create resulting events
@@ -319,6 +330,7 @@ function* eventLoop() {
 
       /**
        * Perform the resulting effects
+       * NOTE: This should be the responsibility of a separate process that consumes the queue of effects
        */
       for (let effect of effects) {
         yield effect;
@@ -326,7 +338,7 @@ function* eventLoop() {
     }
 
     /**
-     * Update the state based on the event
+     * Update the state based on the event(s)
      */
     for (let event of events) {
       state = updateState(state, event);
