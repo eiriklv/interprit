@@ -274,6 +274,7 @@ function* eventLoop() {
 
     /**
      * Store the command and references to the generated events
+     * NOTE: This is where you would store the command in a persistent database
      */
     commandLog.push({
       ...command,
@@ -291,8 +292,7 @@ function* eventLoop() {
 
     /**
      * Store / commit the events
-     *
-     * NOTE: This is where you would store event in a persistent database or push it to a queue
+     * NOTE: This is where you would store the event(s) in a persistent database and/or push it to a queue
      */
     eventLog.push(...events.map((event) => ({
       ...event,
