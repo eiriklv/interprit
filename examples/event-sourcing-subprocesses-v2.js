@@ -131,8 +131,8 @@ const updateState = (state = initialState, event) => {
 /**
  * Event handlers
  *
- * NOTE: The event handlers return effects generated from the event
- * based on the event and the current state
+ * NOTE: The event handlers generate and trigger
+ * effects based on the event and the current state
  */
 const eventHandlers = {
   *[eventTypes.INCREMENT_COUNTER_EVENT](event, state) {
@@ -173,6 +173,9 @@ const eventHandlers = {
     }
   },
   *default({ type }) {
+    /**
+     * Do nothing if the event has no handler
+     */
     return [null];
   },
 };
@@ -187,8 +190,8 @@ function getEventHandlerByType(type) {
 /**
  * Command handlers
  *
- * NOTE: The command handlers return events generated from the command
- * based on the command and the current state
+ * NOTE: The command handlers return events generated from
+ * the command and the current state or aborts if it fails any invariants
  */
 const commandHandlers = {
   *[commandTypes.INCREMENT_COUNTER_COMMAND](command, state) {
@@ -230,6 +233,9 @@ const commandHandlers = {
     return [null, events];
   },
   *default({ type }) {
+    /**
+     * Abort / throw error if the command has no handler
+     */
     return [new Error(`Unrecognized command of type ${type} supplied - Did you forget to add it to the handler map?`)];
   },
 };
@@ -370,9 +376,9 @@ function* renderLoop() {
 }
 
 /**
- * Effects loop
+ * Event loop
  */
-function* effectsLoop() {
+function* eventLoop() {
   /**
    * Initialize the local stat representation
    */
@@ -473,7 +479,7 @@ function* main() {
   yield parallel([
     callProc(inputLoop),
     callProc(commandLoop),
-    callProc(effectsLoop),
+    callProc(eventLoop),
     callProc(renderLoop),
   ]);
 }
