@@ -141,7 +141,7 @@ const eventHandlers = {
     /**
      * Generate effects
      */
-    const effects = state.counter === 0 ? [
+    const effects = getCounter(state) === 0 ? [
       call(console.log, 'went positive!'),
       spawn(subProcessType1, getCounter(state)),
     ] : [
@@ -160,7 +160,7 @@ const eventHandlers = {
      * Generate effects
      * TODO: Use selectors to query state / models
      */
-    const effects = state.counter === 0 ? [
+    const effects = getCounter(state) === 0 ? [
       call(console.log, 'went negative!'),
       spawn(subProcessType2, getCounter(state)),
     ] : [
