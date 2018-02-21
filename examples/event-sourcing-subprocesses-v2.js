@@ -140,6 +140,7 @@ const eventHandlers = {
   *[eventTypes.INCREMENT_COUNTER_EVENT](event, state) {
     /**
      * Generate effects
+     * NOTE: Use selectors to query state / models
      */
     const effects = getCounter(state) === 0 ? [
       call(console.log, 'went positive!'),
@@ -158,7 +159,7 @@ const eventHandlers = {
   *[eventTypes.DECREMENT_COUNTER_EVENT](event, state) {
     /**
      * Generate effects
-     * TODO: Use selectors to query state / models
+     * NOTE: Use selectors to query state / models
      */
     const effects = getCounter(state) === 0 ? [
       call(console.log, 'went negative!'),
@@ -195,8 +196,8 @@ function getEventHandlerByType(type) {
 const commandHandlers = {
   *[commandTypes.INCREMENT_COUNTER_COMMAND](command, state) {
     /**
-     * TODO: Check invariants and rules against state
-     * TODO: Use selectors on the state / models
+     * NOTE: Check invariants and rules against state
+     * NOTE: Use selectors on the state / models
      */
     if (getCounter(state) >= 7) {
       return [new Error('Cannot increment to more than 7')];
@@ -214,8 +215,8 @@ const commandHandlers = {
   },
   *[commandTypes.DECREMENT_COUNTER_COMMAND](command, state) {
     /**
-     * TODO: Check invariants and rules against state
-     * TODO: Use selectors on the state / models
+     * NOTE: Check invariants and rules against state
+     * NOTE: Use selectors on the state / models
      */
     if (getCounter(state) <= -7) {
       return [new Error('Cannot decrement to more than -7')];
