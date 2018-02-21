@@ -114,14 +114,16 @@ const getCounter = (state) => state.counter;
 const updateState = (state = initialState, event) => {
   switch (event.type) {
     case eventTypes.INCREMENT_COUNTER_EVENT:
-    return Object.assign({}, state, {
+    return {
+      ...state,
       counter: state.counter + 1,
-    });
+    };
 
     case eventTypes.DECREMENT_COUNTER_EVENT:
-    return Object.assign({}, state, {
+    return {
+      ...state,
       counter: state.counter - 1,
-    });
+    };
 
     default:
     return state;
@@ -176,7 +178,6 @@ const eventHandlers = {
     /**
      * Do nothing if the event has no handler
      */
-    return [null];
   },
 };
 
