@@ -149,7 +149,7 @@ const eventHandlers = {
     ];
 
     /**
-     * Perform effects
+     * Perform effects (in series)
      */
     for (let effect of effects) {
       yield effect;
@@ -168,11 +168,9 @@ const eventHandlers = {
     ];
 
     /**
-     * Perform effects
+     * Perform effects (in parallel)
      */
-    for (let effect of effects) {
-      yield effect;
-    }
+    yield parallel(effects);
   },
   *default({ type }) {
     /**
