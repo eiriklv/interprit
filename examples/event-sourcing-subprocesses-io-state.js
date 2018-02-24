@@ -21,6 +21,7 @@ const {
   actionChannel,
   takeChannel,
   spawn,
+  select,
 } = require('../lib/effects');
 
 /**
@@ -36,31 +37,7 @@ const createInterpreter = require('../lib/interpreter');
 /**
  * Import IO creator
  */
-const { createIO } = require('../lib/io');
-
-/**
- * Create an IO interface to pass to
- * the interpreter for handling take/put
- */
-const io = createIOWithStates();
-
-/**
- * Create an interpreter based on the effects resolvers and IO chosen
- */
-const interpreter = createInterpreter({
-  call,
-  delay,
-  render,
-  callProc,
-  parallel,
-  put,
-  take,
-  takeStream,
-  putStream,
-  actionChannel,
-  takeChannel,
-  spawn,
-}, io);
+const { createIO, createIOWithStateTransitions } = require('../lib/io');
 
 /**
  * System command types - actions that trigger sagas
@@ -116,7 +93,7 @@ const getCounter = (state) => state.counter;
 /**
  * State update logic (just a reducer)
  */
-const updateState = (state = initialState, event) => {
+const updateState = (state = initialState, event = {}) => {
   switch (event.type) {
     case eventTypes.INCREMENT_COUNTER_EVENT:
     return {
@@ -134,6 +111,31 @@ const updateState = (state = initialState, event) => {
     return state;
   }
 };
+
+/**
+ * Create an IO interface to pass to
+ * the interpreter for handling take/put
+ */
+const io = createIOWithStateTransitions(updateState);
+
+/**
+ * Create an interpreter based on the effects resolvers and IO chosen
+ */
+const interpreter = createInterpreter({
+  call,
+  delay,
+  render,
+  callProc,
+  parallel,
+  put,
+  take,
+  takeStream,
+  putStream,
+  actionChannel,
+  takeChannel,
+  spawn,
+  select,
+}, io);
 
 /**
  * Event handlers
