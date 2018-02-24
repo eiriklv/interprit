@@ -42,7 +42,7 @@ const { createIO } = require('../lib/io');
  * Create an IO interface to pass to
  * the interpreter for handling take/put
  */
-const io = createIO();
+const io = createIOWithStates();
 
 /**
  * Create an interpreter based on the effects resolvers and IO chosen
@@ -142,12 +142,12 @@ const updateState = (state = initialState, event) => {
  * effects based on the event and the current state
  */
 const eventHandlers = {
-  *[eventTypes.INCREMENT_COUNTER_EVENT](event, state) {
+  *[eventTypes.INCREMENT_COUNTER_EVENT](event, currentState, previousState) {
     /**
      * Generate effects
      * NOTE: Use selectors to query state / models
      */
-    const effects = getCounter(state) === 0 ? [
+    const effects = getCounter(currentState) === 0 ? [
       call(console.log, 'went positive!'),
       spawn(subProcessType1, getCounter(state)),
     ] : [
@@ -161,12 +161,12 @@ const eventHandlers = {
       yield effect;
     }
   },
-  *[eventTypes.DECREMENT_COUNTER_EVENT](event, state) {
+  *[eventTypes.DECREMENT_COUNTER_EVENT](event, currentState, previousState) {
     /**
      * Generate effects
      * NOTE: Use selectors to query state / models
      */
-    const effects = getCounter(state) === 0 ? [
+    const effects = getCounter(currentState) === 0 ? [
       call(console.log, 'went negative!'),
       spawn(subProcessType2, getCounter(state)),
     ] : [
@@ -350,11 +350,6 @@ function* inputLoop() {
  */
 function* renderLoop() {
   /**
-   * Initial state
-   */
-  let state = initialState;
-
-  /**
    * Create a channel to queue up all incoming events
    */
   const eventChannel = yield actionChannel('*_EVENT');
@@ -364,6 +359,11 @@ function* renderLoop() {
    */
   while (true) {
     /**
+     * Get the current state
+     */
+    const state = yield select();
+
+    /**
      * Render the app
      */
     yield render(app, state, commands);
@@ -372,11 +372,6 @@ function* renderLoop() {
      * Wait for the next event
      */
     const event = yield takeChannel(eventChannel);
-
-    /**
-     * Update the local state based on the event
-     */
-    state = updateState(state, event);
   }
 }
 
@@ -384,11 +379,6 @@ function* renderLoop() {
  * Event loop
  */
 function* eventLoop() {
-  /**
-   * Initialize the local stat representation
-   */
-  let state = initialState;
-
   /**
    * Create a channel for listening for events
    */
@@ -401,7 +391,7 @@ function* eventLoop() {
     /**
      * Take the next event from the channel / queue
      */
-    const event = yield takeChannel(eventChannel);
+    const [event, currentState, previousState] = yield takeChannel(eventChannel);
 
     /**
      * Get the appropriate event handler
@@ -411,12 +401,7 @@ function* eventLoop() {
     /**
      * Handle the event and trigger the appropriate effects
      */
-    yield callProc(handleEvent, event, state);
-
-    /**
-     * Update the local state based on the event
-     */
-    state = updateState(state, event);
+    yield callProc(handleEvent, event, currentState, previousState);
   }
 }
 
@@ -424,11 +409,6 @@ function* eventLoop() {
  * Command lopp
  */
 function* commandLoop() {
-  /**
-   * Initial state
-   */
-  let state = initialState;
-
   /**
    * Create a channel to queue up all incoming commands
    */
@@ -441,7 +421,7 @@ function* commandLoop() {
     /**
      * Wait for the next command
      */
-    const command = yield takeChannel(commandChannel);
+    const [command, state] = yield takeChannel(commandChannel);
 
     /**
      * Get the appropriate command handler
@@ -466,13 +446,6 @@ function* commandLoop() {
      */
     for (let event of events) {
       yield put(event);
-    }
-
-    /**
-     * Update the state based on the event(s)
-     */
-    for (let event of events) {
-      state = updateState(state, event);
     }
   }
 }

@@ -17,6 +17,7 @@ const {
   take,
   takeStream,
   putStream,
+  pauseStream,
 } = require('../lib/effects');
 
 /**
@@ -52,6 +53,7 @@ const interpreter = createInterpreter({
   take,
   takeStream,
   putStream,
+  pauseStream,
 }, io);
 
 /**
@@ -347,6 +349,11 @@ function* gameLoop() {
    * Render the ending output text
    */
   yield putStream(process.stdout, endingText + '\n\n');
+
+  /**
+   * Pause the input stream to allow for exit
+   */
+  yield pauseStream(process.stdin);
 }
 
 /**
