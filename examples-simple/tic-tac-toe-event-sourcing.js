@@ -544,45 +544,18 @@ function* inputLoop() {
       break;
 
       case 'start':
-      yield put(commandCreators.restartGame());
-      break;
-
       case 'restart':
       yield put(commandCreators.restartGame());
       break;
 
       case '0':
-      yield put(commandCreators.fillTile(+input));
-      break;
-
       case '1':
-      yield put(commandCreators.fillTile(+input));
-      break;
-
       case '2':
-      yield put(commandCreators.fillTile(+input));
-      break;
-
       case '3':
-      yield put(commandCreators.fillTile(+input));
-      break;
-
       case '4':
-      yield put(commandCreators.fillTile(+input));
-      break;
-
       case '5':
-      yield put(commandCreators.fillTile(+input));
-      break;
-
       case '6':
-      yield put(commandCreators.fillTile(+input));
-      break;
-
       case '7':
-      yield put(commandCreators.fillTile(+input));
-      break;
-
       case '8':
       yield put(commandCreators.fillTile(+input));
       break;
