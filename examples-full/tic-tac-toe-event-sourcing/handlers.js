@@ -126,6 +126,7 @@ const eventHandlers = module.exports.eventHandlers = {
     if (finished && winner) {
       effects.push(call(console.log, `player ${winner} won!`));
       effects.push(callProc(celebrateWinner));
+      effects.push(put(commandCreators.restartGame()));
     }
 
     if (finished && !winner) {
@@ -137,7 +138,7 @@ const eventHandlers = module.exports.eventHandlers = {
     }
 
     /**
-     * Perform effects (in series)
+     * Perform effects (in series, parallel or any way you want)
      */
     for (let effect of effects) {
       yield effect;
@@ -152,7 +153,7 @@ const eventHandlers = module.exports.eventHandlers = {
     ];
 
     /**
-     * Perform effects (in series)
+     * Perform effects (in series, parallel or any way you want)
      */
     for (let effect of effects) {
       yield effect;

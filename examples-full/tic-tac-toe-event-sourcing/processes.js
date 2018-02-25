@@ -10,13 +10,6 @@ const {
 } = require('../../lib/effects');
 
 /**
- * Import action creators
- */
-const {
-  commandCreators,
-} = require('./actions');
-
-/**
  * Board rendering procedure
  */
 const renderGameBoard = module.exports.renderGameBoard = function* renderGameBoard(game) {
@@ -47,9 +40,4 @@ const celebrateWinner = module.exports.celebrateWinner = function* celebrateWinn
   }
 
   yield call(console.log, 'celebration done!');
-
-  /**
-   * Trigger a command
-   */
-  yield put(commandCreators.restartGame());
 }
