@@ -8,7 +8,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -35,5 +35,8 @@
     "is-promise": "^2.1.0",
     "minimatch": "^3.0.4",
     "uuid": "^3.2.1"
+  },
+  "devDependencies": {
+    "jest": "^22.4.2"
   }
 }
