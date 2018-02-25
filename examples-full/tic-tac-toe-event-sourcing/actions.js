@@ -4,20 +4,6 @@
 const uuid = require('uuid');
 
 /**
- * Import effects
- */
-const { call, callProc } = require('../../lib/effects');
-
-/**
- * Import model selectors
- */
-const {
-  getNextPlayer,
-  getWinner,
-  getAvailableTiles,
-} = require('./models');
-
-/**
  * System command types - actions that trigger sagas
  */
 const commandTypes = module.exports.commandTypes = {

@@ -36,6 +36,8 @@ const {
  */
 const { celebrateWinner } = require('./processes');
 
+console.log('hmm', celebrateWinner);
+
 /**
  * Command handlers
  *
@@ -125,6 +127,7 @@ const eventHandlers = module.exports.eventHandlers = {
 
     if (finished && winner) {
       effects.push(call(console.log, `player ${winner} won!`));
+      console.log('proc', celebrateWinner);
       effects.push(callProc(celebrateWinner));
     }
 

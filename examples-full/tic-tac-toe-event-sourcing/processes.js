@@ -1,12 +1,32 @@
 /**
  * Import effects
  */
-const { call, delay, put } = require('../../lib/effects');
+const {
+  call,
+  delay,
+  put,
+  putStream,
+  takeStream,
+} = require('../../lib/effects');
 
 /**
- * Import command utilities
+ * Import action creators
  */
-const { commandCreators } = require('./actions');
+const {
+  commandCreators,
+} = require('./actions');
+
+/**
+ * Board rendering procedure
+ */
+const renderGameBoard = module.exports.renderGameBoard = function* renderGameBoard(game) {
+  yield putStream(process.stdout, `\n`);
+  yield putStream(process.stdout, `${game[0][0] || ' '}|${game[0][1] || ' '}|${game[0][2] || ' '}\n`);
+  yield putStream(process.stdout, `-+-+-\n`);
+  yield putStream(process.stdout, `${game[1][0] || ' '}|${game[1][1] || ' '}|${game[1][2] || ' '}\n`);
+  yield putStream(process.stdout, `-+-+-\n`);
+  yield putStream(process.stdout, `${game[2][0] || ' '}|${game[2][1] || ' '}|${game[2][2] || ' '}\n\n`);
+}
 
 /**
  * Subprocess for celebrating winner
