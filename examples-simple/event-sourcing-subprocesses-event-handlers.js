@@ -416,7 +416,7 @@ function* eventLoop() {
 }
 
 /**
- * Command lopp
+ * Command loop
  */
 function* commandLoop() {
   /**
