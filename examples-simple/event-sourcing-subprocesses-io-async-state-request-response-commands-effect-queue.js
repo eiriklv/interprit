@@ -30,11 +30,6 @@ const {
 } = require('../lib/effects');
 
 /**
- * TODO: Add request-response semantics for commands,
- * TODO: Use IOWithStates to calculate transitions instead of using local state for every process
- */
-
-/**
  * Import interpreter creator
  */
 const createInterpreter = require('../lib/interpreter');
