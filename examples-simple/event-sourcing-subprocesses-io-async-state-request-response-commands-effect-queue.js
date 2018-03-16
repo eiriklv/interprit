@@ -159,7 +159,7 @@ const interpreter = createInterpreter({
  * effects based on the event and the current state
  */
 const eventHandlers = {
-  *[eventTypes.INCREMENT_COUNTER_EVENT](event, currentState, previousState) {
+  *[eventTypes.INCREMENT_COUNTER_EVENT]({ commandChannel }, event, currentState, previousState) {
     /**
      * Get applicable state from the aggregate
      */
@@ -171,7 +171,7 @@ const eventHandlers = {
      */
     const effects = counter === 0 ? [
       call(console.log, 'went positive!'),
-      spawn(subProcessType1, counter),
+      spawn(subProcessType1, { commandChannel, initialValue: counter }),
     ] : [
       call(console.log, 'incremented counter!'),
     ];
@@ -181,7 +181,7 @@ const eventHandlers = {
      */
     return [null, effects];
   },
-  *[eventTypes.DECREMENT_COUNTER_EVENT](event, currentState, previousState) {
+  *[eventTypes.DECREMENT_COUNTER_EVENT]({ commandChannel }, event, currentState, previousState) {
     /**
      * Get applicable state from the aggregate
      */
@@ -193,7 +193,7 @@ const eventHandlers = {
      */
     const effects = counter === 0 ? [
       call(console.log, 'went negative!'),
-      spawn(subProcessType2, counter),
+      spawn(subProcessType2, { commandChannel, initialValue: counter }),
     ] : [
       call(console.log, 'decremented counter!'),
     ];
@@ -297,7 +297,7 @@ const app = function (state, commands) {
 /**
  * Subprocess type 1
  */
-function* subProcessType1(initialValue) {
+function* subProcessType1({ initialValue, commandChannel }) {
   /**
    * Initialize the subprocess
    */
@@ -317,13 +317,14 @@ function* subProcessType1(initialValue) {
   /**
    * Trigger a command
    */
-  yield put(commandCreators.incrementCounter());
+  yield putRequest(commandChannel, commandCreators.incrementCounter());
+  const [error, result] = yield takeChannelResponse(commandChannel, requestId);
 }
 
 /**
  * Subprocess type 2
  */
-function* subProcessType2(initialValue) {
+function* subProcessType2({ initialValue, commandChannel }) {
   /**
    * Initialize the subprocess
    */
@@ -343,7 +344,8 @@ function* subProcessType2(initialValue) {
   /**
    * Trigger a command
    */
-  yield put(commandCreators.decrementCounter());
+  yield putRequest(commandChannel, commandCreators.decrementCounter());
+  const [error, result] = yield takeChannelResponse(commandChannel, requestId);
 }
 
 /**
@@ -438,7 +440,7 @@ function* effectLoop({ effectQueue }) {
 /**
  * Event loop
  */
-function* eventLoop({ effectQueue }) {
+function* eventLoop({ commandChannel, effectQueue }) {
   /**
    * Create a channel for listening for events
    */
@@ -467,7 +469,7 @@ function* eventLoop({ effectQueue }) {
     /**
      * Handle the event and trigger the appropriate effects
      */
-    const [error, effects] = yield callProc(handleEvent, event, currentState, previousState);
+    const [error, effects] = yield callProc(handleEvent, { commandChannel }, event, currentState, previousState);
 
     /**
      * Put the effects on the effects queue
@@ -544,7 +546,7 @@ function* main() {
   yield parallel([
     callProc(inputLoop, { commandChannel }),
     callProc(commandLoop, { commandChannel }),
-    callProc(eventLoop, { effectQueue }),
+    callProc(eventLoop, { commandChannel, effectQueue }),
     callProc(effectLoop, { effectQueue }),
     callProc(renderLoop),
   ]);
