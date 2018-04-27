@@ -1,6 +1,11 @@
 'use strict';
 
 /**
+ * Dependencies
+ */
+const uuid = require('uuid');
+
+/**
  * Effects
  */
 const {
@@ -53,8 +58,9 @@ const interpreter = createInterpreter({
  */
 function* childProcess() {
   while (true) {
-    const [msg, provider] = yield receive();
+    const [msg, ref, provider] = yield receive();
     yield call(console.log, 'got message', msg, 'from', provider.id);
+    yield send(provider, ref, msg.payload);
   }
 }
 
@@ -68,7 +74,20 @@ function* parentProcess() {
 
   while (true) {
     yield delay(1000);
-    yield send(childTask, { type: 'SOME_MESSAGE_TYPE', payload: counter++ });
+
+    const ref = uuid.v4();
+    yield send(childTask, ref, { type: 'SOME_MESSAGE_TYPE', payload: counter++ });
+
+    /**
+     * Wait for message with corresponding ref to arrive
+     * NOTE: Here we're just skipping all other messages
+     */
+    let reply, receivedRef;
+    while (receivedRef != ref) {
+      [reply, receivedRef] = yield receive();
+    }
+
+    yield call(console.log, 'got reply', reply);
   }
 }
 
