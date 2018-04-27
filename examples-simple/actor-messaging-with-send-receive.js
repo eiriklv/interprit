@@ -58,9 +58,9 @@ const interpreter = createInterpreter({
  */
 function* childProcess() {
   while (true) {
-    const [msg, ref, provider] = yield receive();
+    const [msg, provider] = yield receive();
     yield call(console.log, 'got message', msg, 'from', provider.id);
-    yield send(provider, ref, msg.payload);
+    yield send(provider, { ref: msg.ref, type: 'SOME_REPLY', payload: msg.payload });
   }
 }
 
@@ -76,15 +76,15 @@ function* parentProcess() {
     yield delay(1000);
 
     const ref = uuid.v4();
-    yield send(childTask, ref, { type: 'SOME_MESSAGE_TYPE', payload: counter++ });
+    yield send(childTask, { ref, type: 'SOME_MESSAGE_TYPE', payload: counter++ });
 
     /**
      * Wait for message with corresponding ref to arrive
      * NOTE: Here we're just skipping all other messages
      */
-    let reply, receivedRef;
-    while (receivedRef != ref) {
-      [reply, receivedRef] = yield receive();
+    let reply = {};
+    while (reply.ref != ref) {
+      [reply] = yield receive();
     }
 
     yield call(console.log, 'got reply', reply);
