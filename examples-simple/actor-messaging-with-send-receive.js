@@ -60,7 +60,6 @@ function* childProcess() {
   while (true) {
     const [msg, provider] = yield receive();
     yield call(console.log, 'got message', msg, 'from', provider.id);
-    yield send(provider, { ref: msg.ref, type: 'SOME_REPLY', payload: msg.payload });
   }
 }
 
@@ -74,20 +73,7 @@ function* parentProcess() {
 
   while (true) {
     yield delay(1000);
-
-    const ref = uuid.v4();
-    yield send(childTask, { ref, type: 'SOME_MESSAGE_TYPE', payload: counter++ });
-
-    /**
-     * Wait for message with corresponding ref to arrive
-     * NOTE: Here we're just skipping all other messages
-     */
-    let reply = {};
-    while (reply.ref != ref) {
-      [reply] = yield receive();
-    }
-
-    yield call(console.log, 'got reply', reply);
+    yield send(childTask, { type: 'SOME_MESSAGE_TYPE', payload: counter++ });
   }
 }
 
