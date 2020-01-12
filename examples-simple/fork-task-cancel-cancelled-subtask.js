@@ -214,7 +214,7 @@ function application () {
    */
   processes.forEach((proc) => {
     interpreter(proc, context, finalHandler, args).done
-    .then(() => 'program finished running')
+    .then(() => console.log('program finished running'))
     .catch((error) => console.log('program crashed', error));
   });
 }

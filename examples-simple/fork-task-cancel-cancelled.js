@@ -113,6 +113,8 @@ function* mainProcess() {
       console.log('main task finished');
     }
   }
+
+  return true;
 }
 
 /**
@@ -213,7 +215,7 @@ function application () {
    */
   processes.forEach((proc) => {
     interpreter(proc, context, finalHandler, args).done
-    .then(() => 'program finished running')
+    .then((result) => console.log('program finished running', { result }))
     .catch((error) => console.log('program crashed', error));
   });
 }
